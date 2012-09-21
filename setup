@@ -18,9 +18,8 @@ catalina_base=$app_dir/server
 
 install_app() {
     tomcat_dir=$app_dir/tomcat7
-    cp -rf $plugin_dir/runtime/apache-tomcat-7.0.29 $tomcat_dir
+    cp -rf $plugin_dir/tomcat7 $tomcat_dir
     chmod +x $tomcat_dir/bin/catalina.sh
-    rm -rf $tomcat_dir/webapps/*
 
     mkdir -p $catalina_base
     cp -rf $plugin_dir/server/* $catalina_base
