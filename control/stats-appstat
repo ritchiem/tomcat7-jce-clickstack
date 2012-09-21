@@ -1,0 +1,5 @@
+#!/bin/sh
+set -e
+control_dir="$(dirname $0)"
+. $control_dir/config
+curl -sf -m 15 http://127.0.0.1:${port}/_stax/stats?format=properties | grep -v "^#" | sed 's/=/ /' | awk '{ gsub(/\./, "_", $1); print }'

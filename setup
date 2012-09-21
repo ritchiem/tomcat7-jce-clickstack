@@ -1,0 +1,85 @@
+# -*-shell-script-*-
+
+find_java() {
+    set +u
+    java_version=${staxcat_java_version-"1.6"}
+    set -u
+    case "$java_version" in
+	"1.6")echo "/opt/java6/bin/java";;
+	"1.7") echo "/opt/java7/bin/java";;
+	*) which java
+    esac
+}
+
+java=$(find_java)
+echo "Using $java"
+
+catalina_base=$app_dir/server
+
+install_app() {
+    tomcat_dir=$app_dir/tomcat7
+    cp -rf $plugin_dir/runtime/apache-tomcat-7.0.29 $tomcat_dir
+    chmod +x $tomcat_dir/bin/catalina.sh
+    rm -rf $tomcat_dir/webapps/*
+
+    mkdir -p $catalina_base
+    cp -rf $plugin_dir/server/* $catalina_base
+    mkdir -p $catalina_base/webapps/ROOT
+
+    if [ -f "$pkg_dir/../app.zip" ]; then
+        #this is an archive-based app deploy
+        unzip $pkgdir/../app.zip $catalina_base/webapps/ROOT
+    else
+        #this is a local development app deploy
+        cp -a $pkg_dir/ $catalina_base/webapps/ROOT
+        rm $catalina_base/webapps/ROOT/.genapp/metadata.json
+    fi
+}
+
+create_app_skel() {
+    chmod 775 $app_dir
+    mkdir -m 775 $app_dir/tmp
+    mkdir -m 775 $app_dir/log
+    mkdir -m 775 $app_dir/work
+    ln -s $log_dir/current $app_dir/log/current
+}
+
+write_config() {
+    config="$control_dir/config"
+    echo "app_dir=$app_dir" >> $config
+    echo "port=$app_port" >> $config
+    echo "java=$java" >> $config
+    echo "catalina_opts=-Dport.http=$app_port" >> $config
+    echo "catalina_home=$app_dir/tomcat7" >> $config
+    echo "catalina_base=$catalina_base" >> $config
+    echo "app_tmp=$app_dir/tmp" >> $config
+
+    set +u
+    echo "environment=$staxcat_appserver_env" >> $config
+    set -u
+}
+
+write_java_opts() {
+    java_opts_core="$control_dir/java-opts-10-core"
+    set +u
+    resolved_opts=$(eval "echo $staxcat_java_opts")
+    set -u
+    echo $resolved_opts > $java_opts_core
+}
+
+write_appserver_xml() {
+    echo "placeholder"
+}
+
+write_control() {
+    install -m 550 $plugin_dir/control/start $control_dir
+    install -m 550 $plugin_dir/control/stats-appstat $control_dir
+}
+
+install_app
+create_app_skel
+write_config
+write_java_opts
+write_appserver_xml
+write_control
+

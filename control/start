@@ -1,0 +1,42 @@
+#!/bin/sh
+set -e
+set -u
+
+control_dir="$(dirname $0)"
+. $control_dir/config
+
+tomcat_bootstrap_jar=$catalina_home/bin/bootstrap.jar
+tomcat_juli_jar=$catalina_home/bin/tomcat-juli.jar
+tomcat_bootstrap_class=org.apache.catalina.startup.Bootstrap
+
+java_opts=""
+for f in `ls $control_dir/java-opts-* | sort`; do
+    java_opts="$java_opts `cat $f`"
+done
+
+export CATALINA_OPTS=$catalina_opts
+
+echo CATALINA_OPTS=$CATALINA_OPTS
+echo $app_dir/tomcat7/bin/catalina.sh run
+
+#exec $app_dir/tomcat7/bin/catalina.sh run
+
+echo exec $java \
+    -cp $tomcat_bootstrap_jar:$tomcat_juli_jar \
+    $java_opts \
+    $catalina_opts \
+    -Dcatalina.home=$catalina_home \
+    -Dcatalina.base=$catalina_base \
+    -Djava.io.tmpdir=$app_tmp \
+    $tomcat_bootstrap_class start
+
+
+exec $java \
+    -cp $tomcat_bootstrap_jar:$tomcat_juli_jar \
+    $java_opts \
+    $catalina_opts \
+    -Dcatalina.home=$catalina_home \
+    -Dcatalina.base=$catalina_base \
+    -Djava.io.tmpdir=$app_tmp \
+    $tomcat_bootstrap_class start
+
