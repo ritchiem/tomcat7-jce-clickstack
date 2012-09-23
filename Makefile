@@ -1,8 +1,12 @@
+#
+# 
+# TODOs
+# TODO: add md5 verify to tomcat download
+
 build_dir = ./build
 pkg_dir = ./build/plugin
-tomcat_url="file:///Users/spike/Downloads/apache-tomcat-7.0.29.zip"
+tomcat_url="http://mirror.nexcess.net/apache/tomcat/tomcat-7/v7.0.30/bin/apache-tomcat-7.0.30.zip"
 tomcat_md5=i3a1fd1825202631e6c43461fa018c4f6
-
 compile:
 	mkdir -p $(build_dir)
 

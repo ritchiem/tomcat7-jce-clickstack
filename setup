@@ -1,4 +1,5 @@
 # -*-shell-script-*-
+set -x
 
 find_java() {
     set +u
@@ -21,13 +22,16 @@ install_app() {
     cp -rf $plugin_dir/tomcat7 $tomcat_dir
     chmod +x $tomcat_dir/bin/catalina.sh
 
-    mkdir -p $catalina_base
+    mkdir -p -m 770 $catalina_base
     cp -rf $plugin_dir/server/* $catalina_base
-    mkdir -p $catalina_base/webapps/ROOT
+    mkdir -p -m 770 $catalina_base/webapps/ROOT
+
+    echo "Creating Tomcat working directory"
+    mkdir -p -m 770 $catalina_base/server/work/Catalina/localhost/_
 
     if [ -f "$pkg_dir/../app.zip" ]; then
         #this is an archive-based app deploy
-        unzip $pkgdir/../app.zip $catalina_base/webapps/ROOT
+        unzip -d $catalina_base/webapps/ROOT $pkg_dir/../app.zip
     else
         #this is a local development app deploy
         cp -a $pkg_dir/ $catalina_base/webapps/ROOT
@@ -36,10 +40,10 @@ install_app() {
 }
 
 create_app_skel() {
-    chmod 775 $app_dir
-    mkdir -m 775 $app_dir/tmp
-    mkdir -m 775 $app_dir/log
-    mkdir -m 775 $app_dir/work
+    chmod 770 $app_dir
+    mkdir -m 770 $app_dir/tmp
+    mkdir -m 770 $app_dir/log
+    mkdir -m 770 $app_dir/work
     ln -s $log_dir/current $app_dir/log/current
 }
 
@@ -75,8 +79,8 @@ write_control() {
     install -m 550 $plugin_dir/control/stats-appstat $control_dir
 }
 
-install_app
 create_app_skel
+install_app
 write_config
 write_java_opts
 write_appserver_xml
