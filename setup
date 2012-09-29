@@ -3,12 +3,17 @@ set -x
 
 find_java() {
     set +u
-    java_version=${staxcat_java_version-"1.6"}
+    java_version=${tomcat7_java_version-"1.6"}
     set -u
     case "$java_version" in
 	"1.6")echo "/opt/java6/bin/java";;
 	"1.7") echo "/opt/java7/bin/java";;
-	*) which java
+	"1.8") echo "/opt/java8/jre/bin/java";;
+	"system") which java;;
+        *)
+            echo "Unsupported java version $java_version" 1>&2
+            exit 1
+            ;;
     esac
 }
 
@@ -65,7 +70,7 @@ write_config() {
 write_java_opts() {
     java_opts_core="$control_dir/java-opts-10-core"
     set +u
-    resolved_opts=$(eval "echo $staxcat_java_opts")
+    resolved_opts=$(eval "echo $tomcat7_opts")
     set -u
     echo $resolved_opts > $java_opts_core
 }
