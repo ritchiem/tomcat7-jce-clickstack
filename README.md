@@ -1,5 +1,9 @@
 # Tomcat 7 ClickStack
 
+To use: 
+
+    bees app:deploy -t tomcat7 -a APP_ID WAR_FILE
+
 Tomcat 7 ClickStack for CloudBees PaaS. Deploy any Servlet2.x/3.x/JSP.
 
 # Pre-requisite
