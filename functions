@@ -27,7 +27,7 @@ install_server_config() {
 install_app() {
     mkdir -p -m 770 $catalina_base/webapps/ROOT
     mkdir -p -m 770 $catalina_base/server/work/Catalina/localhost/_
-    cp -a $pkg_dir/ $catalina_base/webapps/ROOT
+    unzip $pkg_dir/app.war -d $catalina_base/webapps/ROOT
 }
 
 write_config() {

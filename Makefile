@@ -22,7 +22,7 @@ compile:
 
 package: compile
 	rm -f "$(build_dir)/tomcat7-plugin.zip"
-	zip -9 -r "$(build_dir)/tomcat7-plugin.zip" control server setup tomcat7
+	zip -9 -r "$(build_dir)/tomcat7-plugin.zip" control functions java server setup tomcat7
 
 clean:
 	rm -rf "$(build_dir)"
