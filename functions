@@ -1,0 +1,53 @@
+# -*-shell-script-*-
+
+. "$genapp_functions/core"
+. "$plugin_dir/java/functions"
+
+catalina_base=$app_dir/server
+
+create_app_skel() {
+    chmod 770 $app_dir
+    mkdir -m 770 $app_dir/tmp
+    mkdir -m 770 $app_dir/log
+    mkdir -m 770 $app_dir/work
+    ln -s $log_dir/current $app_dir/log/current
+}
+
+install_tomcat7() {
+    tomcat_dir=$app_dir/tomcat7
+    cp -rf $plugin_dir/tomcat7 $tomcat_dir
+    chmod 755 $tomcat_dir/bin/catalina.sh
+}
+
+install_server_config() {
+    mkdir -p -m 770 $catalina_base
+    cp -rf $plugin_dir/server/* $catalina_base
+}
+
+install_app() {
+    mkdir -p -m 770 $catalina_base/webapps/ROOT
+    mkdir -p -m 770 $catalina_base/server/work/Catalina/localhost/_
+    cp -a $pkg_dir/ $catalina_base/webapps/ROOT
+}
+
+write_config() {
+    config="$control_dir/config"
+    echo "Writing configuration to $config"
+    java=$(find_java)
+    echo "Using JVM at $java"
+    echo "app_dir=$app_dir" >> $config
+    echo "port=$app_port" >> $config
+    echo "java=$java" >> $config
+    echo "catalina_opts=-Dport.http=$app_port" >> $config
+    echo "catalina_home=$app_dir/tomcat7" >> $config
+    echo "catalina_base=$catalina_base" >> $config
+    echo "app_tmp=$app_dir/tmp" >> $config
+    set +u
+    echo "environment=$staxcat_appserver_env" >> $config
+    set -u
+}
+
+write_control() {
+    install -m 550 $plugin_dir/control/start $control_dir
+    install -m 550 $plugin_dir/control/stats-appstat $control_dir
+}

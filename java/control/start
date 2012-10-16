@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+set -u
+
+control_dir="$(dirname $0)"
+. $control_dir/config
+
+cmd="$java -Djava.io.tmpdir=\"$tmp_dir\" -Dapp.port=$port"
+for file in `ls $control_dir/jvm-opts-* | sort`; do
+    cmd="$cmd `cat $file`"
+done
+cmd="$cmd -cp \"$classpath\" $class $args"
+
+exec bash -c "$cmd"

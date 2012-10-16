@@ -1,0 +1,108 @@
+# -*-shell-script-*-
+
+. "$genapp_functions/core"
+
+find_java() {
+    set +u
+    version=${jvm_version-"1.6"}
+    set -u
+    case "$version" in
+        "1.6") echo "/opt/java6/bin/java";;
+        "1.7") echo "/opt/java7/bin/java";;
+        "1.8") echo "/opt/java8/jre/bin/java";;
+	"system") which java;;
+        *)
+	    echo "Unsupported java version $version" 1>&2
+	    exit 1
+	    ;;
+    esac
+}
+
+install_app() {
+    echo "Copying application files to $app_dir/app"
+    mkdir $app_dir/app
+    cp -a $pkg_dir/* $app_dir/app
+    chmod g+w -R $app_dir/app
+}
+
+create_app_skel() {
+    echo "Creating application skeleton at $app_dir"
+    chmod 770 $app_dir
+    mkdir -m 770 $app_dir/tmp
+    mkdir -m 770 $app_dir/log
+    ln -s $log_dir/current $app_dir/log/current
+}
+
+java_classpath() {
+    set +u
+    _path="$java_classpath"
+    set -u
+    working="$app_dir/app"
+    for part in $(echo $_path | tr ":" "\n"); do
+        if [[ "$part" == /* ]]; then
+            # part is absolute (starts with /) - use as is
+            working="$working:$part"
+        else
+            # part is relative - prepend $app_dir/app
+            working="$working:$app_dir/app/$part"
+        fi
+    done
+    echo "$working"
+}
+
+java_args() {
+    set +u
+    escaped=$(escape_quotes "$java_args")
+    set -u
+    echo "\"$escaped\""
+}
+
+write_config() {
+    config="$control_dir/config"
+    echo "Writing configuration to $config"
+    java=$(find_java)
+    echo "Using JVM at $java"
+    classpath=$(java_classpath)
+    resolved_classpath=$(eval "echo $classpath")
+    args=$(java_args)
+    resolved_args=$(eval "echo $args")
+    escaped_resolved_args=$(escape_quotes "$resolved_args")
+    echo "port=$app_port" >> $config
+    echo "java=$java" >> $config
+    echo "tmp_dir=$app_dir/tmp" >> $config
+    echo "class=$java_class" >> $config
+    echo "classpath=\"$resolved_classpath\"" >> $config
+    echo "args=\"$escaped_resolved_args\"" >> $config
+}
+
+jvm_opts() {
+    set +u
+    escaped=$(escape_quotes "$jvm_opts")
+    set -u
+    echo "\"$escaped\""
+}
+
+write_jvm_opts() {
+    config="$control_dir/jvm-opts-10-core"
+    echo "Writing jvm options to $config"
+    opts=$(jvm_opts)
+    resolved_opts=$(eval "echo $opts")
+    echo "$resolved_opts" > $config
+}
+
+write_system_props() {
+    config="$control_dir/jvm-opts-20-system-props"
+    echo "Writing system props to $config"
+    cat $control_dir/env | while read -r sysprop; do
+        name=`echo $sysprop | cut -d= -f1`
+        val=`echo $sysprop | cut -d= -f2-`
+        resolved_val=$(eval "echo $val")
+        escaped_val=$(escape_quotes "$resolved_val")
+        echo -n "-D$name=\"$escaped_val\" " >> $config
+    done
+}
+
+write_control() {
+    echo "Writing control scripts to $control_dir"
+    install -m 550 $plugin_dir/control/start $control_dir
+}
