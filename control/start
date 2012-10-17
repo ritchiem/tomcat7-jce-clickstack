@@ -9,9 +9,9 @@ tomcat_bootstrap_jar=$catalina_home/bin/bootstrap.jar
 tomcat_juli_jar=$catalina_home/bin/tomcat-juli.jar
 tomcat_bootstrap_class=org.apache.catalina.startup.Bootstrap
 
-java_opts=""
-for f in `ls $control_dir/java-opts-* | sort`; do
-    java_opts="$java_opts `cat $f`"
+jvm_opts=""
+for f in `ls $control_dir/jvm-opts-* | sort`; do
+    jvm_opts="$jvm_opts `cat $f`"
 done
 
 export CATALINA_OPTS=$catalina_opts
@@ -19,7 +19,7 @@ export CATALINA_OPTS=$catalina_opts
 exec bash -c "
 $java \
     -cp $tomcat_bootstrap_jar:$tomcat_juli_jar \
-    $java_opts \
+    $jvm_opts \
     $catalina_opts \
     -Dcatalina.home=$catalina_home \
     -Dcatalina.base=$catalina_base \
