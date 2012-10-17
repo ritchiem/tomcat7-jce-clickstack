@@ -1,6 +1,5 @@
 # -*-shell-script-*-
 
-. "$genapp_functions/core"
 . "$plugin_dir/java/functions"
 
 catalina_base=$app_dir/server
