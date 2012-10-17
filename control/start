@@ -16,12 +16,8 @@ done
 
 export CATALINA_OPTS=$catalina_opts
 
-echo CATALINA_OPTS=$CATALINA_OPTS
-echo $app_dir/tomcat7/bin/catalina.sh run
-
-#exec $app_dir/tomcat7/bin/catalina.sh run
-
-echo exec $java \
+exec bash -c "
+$java \
     -cp $tomcat_bootstrap_jar:$tomcat_juli_jar \
     $java_opts \
     $catalina_opts \
@@ -29,14 +25,4 @@ echo exec $java \
     -Dcatalina.base=$catalina_base \
     -Djava.io.tmpdir=$app_tmp \
     $tomcat_bootstrap_class start
-
-
-exec $java \
-    -cp $tomcat_bootstrap_jar:$tomcat_juli_jar \
-    $java_opts \
-    $catalina_opts \
-    -Dcatalina.home=$catalina_home \
-    -Dcatalina.base=$catalina_base \
-    -Djava.io.tmpdir=$app_tmp \
-    $tomcat_bootstrap_class start
-
+"
