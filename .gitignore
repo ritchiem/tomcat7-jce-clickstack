@@ -1,3 +1,6 @@
-build/
-tomcat7/
+lib/tomcat7.zip
+java
+tomcat7-plugin.zip
+pkg
+s3cfg
 .DS_Store
