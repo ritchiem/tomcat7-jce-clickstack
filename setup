@@ -10,6 +10,7 @@ install_tomcat7
 install_server_config
 install_app
 install_java_agent
+install_java_functions
 write_config
 write_java_opts
 write_control
