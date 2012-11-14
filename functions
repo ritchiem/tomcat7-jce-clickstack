@@ -43,7 +43,7 @@ write_config() {
     echo "port=$app_port" >> $_config
     echo "java=$java" >> $_config
     echo "catalina_opts=-Dport.http=$app_port" >> $_config
-    echo "catalina_home=$app_dir/tomcat7" >> $_config
+    echo "catalina_home=$tomcat7_dir" >> $_config
     echo "catalina_base=$catalina_base" >> $_config
     echo "app_tmp=$app_dir/tmp" >> $_config
 }

@@ -6,21 +6,18 @@ control_dir="$(dirname $0)"
 . $control_dir/config
 . $control_dir/java/functions
 
-sysprops=(
-    -Dcatalina.home=$cataline_home
-    -Dcatalina.base=$catalina_base
-    -Djava.io.tmpdir=$app_tmp)
-
-classpath=(
-    $catalina_home/bin/bootstrap.jar
-    $catalina_home/bin/tomcat-juli.jar)
-
 java_opts="$(java_opts $control_dir)"
-sysprop_opts="${sysprops[@]}"
-cp_opt="-cp $(join_classpath classpath[@])"
-class=org.apache.catalina.startup.Bootstrap
 
 export CATALINA_OPTS=$catalina_opts
 
-exec bash -c \
-    "$java $java_opts $sysprop_opts $catalina_opts $cp_opt $class start"
+exec bash -c "
+$java \
+  $java_opts \
+  -Dcatalina.home=$cataline_home \
+  -Dcatalina.base=$catalina_base \
+  -Djava.io.tmpdir=$app_tmp \
+  $catalina_opts \
+  -cp $catalina_home/bin/bootstrap.jar:$catalina_home/bin/tomcat-juli.jar \
+  org.apache.catalina.startup.Bootstrap \
+  start
+"
