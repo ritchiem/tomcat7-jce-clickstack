@@ -13,7 +13,7 @@ export CATALINA_OPTS=$catalina_opts
 exec bash -c "
 $java \
   $java_opts \
-  -Dcatalina.home=$cataline_home \
+  -Dcatalina.home=$catalina_home \
   -Dcatalina.base=$catalina_base \
   -Djava.io.tmpdir=$app_tmp \
   $catalina_opts \

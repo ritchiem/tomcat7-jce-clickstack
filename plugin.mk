@@ -19,19 +19,25 @@ clean-pkg: plugin_name-var
 	rm -rf pkg
 	rm -f $(plugin_name).zip
 
-publish: plugin_name-var publish_url-var pkg
+publish: plugin_name-var publish_url-var s3cfg s3cmd pkg republish
+
+republish:
+	s3cmd put -Pc s3cfg $(plugin_name).zip $(publish_url)
+
+s3cfg:
 	@if [ ! -e s3cfg ]; then \
 	  echo "To publish to s3, copy s3cfg.in to s3cfg and edit" \
                "s3cfg specifying your AWS credentials for s3." | fold -s; \
 	  exit 1; \
 	fi
+
+s3cmd:
 	@if [ "$$(which s3cmd)" = "" ]; then \
 	  echo "To publish to s3, you must install s3cmd. If a system" \
 	       "package isn't available, you can download the source from" \
 	       "http://s3tools.org/s3cmd." | fold -s; \
 	  exit 1; \
 	fi
-	s3cmd put -Pc s3cfg $(plugin_name).zip $(publish_url)
 
 define check-val
   @if [ "$1" = "" ]; then \
