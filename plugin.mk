@@ -1,3 +1,5 @@
+s3cfg = s3cfg
+
 all: pkg
 
 clean: clean-deps clean-pkg
@@ -22,10 +24,10 @@ clean-pkg: plugin_name-var
 publish: plugin_name-var publish_url-var s3cfg s3cmd pkg republish
 
 republish:
-	s3cmd put -Pc s3cfg $(plugin_name).zip $(publish_url)
+	s3cmd put -Pc $(s3cfg) $(plugin_name).zip $(publish_url)
 
 s3cfg:
-	@if [ ! -e s3cfg ]; then \
+	@if [ ! -e $(s3cfg) ]; then \
 	  echo "To publish to s3, copy s3cfg.in to s3cfg and edit" \
                "s3cfg specifying your AWS credentials for s3." | fold -s; \
 	  exit 1; \

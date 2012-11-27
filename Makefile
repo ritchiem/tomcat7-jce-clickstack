@@ -1,6 +1,7 @@
 plugin_name = tomcat7-plugin
+publish_bucket = cloudbees-clickstack
 publish_repo = testing
-publish_url = s3://cloudbees-clickstack/$(publish_repo)/
+publish_url = s3://$(publish_bucket)/$(publish_repo)/
 
 deps = lib/tomcat7.zip java
 
