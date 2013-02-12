@@ -16,7 +16,7 @@ tomcat7_md5 = 1c7a7869d86b74dddb0a22d15f020922
 lib/tomcat7.zip:
 	mkdir -p lib
 	curl -fLo lib/tomcat7.zip "$(tomcat7_url)"
-	echo "$(tomcat7_md5)  lib/tomcat7.zip" | md5sum --check
+	$(call check-md5,lib/tomcat7.zip,$(tomcat7_md5))
 	unzip -qd lib lib/tomcat7.zip
 	rm -rf lib/apache-tomcat-$(tomcat7_ver)/webapps
 	rm lib/tomcat7.zip
