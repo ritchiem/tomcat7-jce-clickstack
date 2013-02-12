@@ -9,9 +9,9 @@ pkg_files = control functions server setup lib java
 
 include plugin.mk
 
-tomcat7_ver = 7.0.32
+tomcat7_ver = 7.0.35
 tomcat7_url = http://mirror.nexcess.net/apache/tomcat/tomcat-7/v$(tomcat7_ver)/bin/apache-tomcat-$(tomcat7_ver).zip
-tomcat7_md5 = 97f3a8cc86c6c98213c4c988ee8a8f25
+tomcat7_md5 = 1c7a7869d86b74dddb0a22d15f020922
 
 lib/tomcat7.zip:
 	mkdir -p lib
