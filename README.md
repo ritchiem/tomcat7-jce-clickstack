@@ -49,4 +49,6 @@ Once the plugin is published to a public URL, you can update an app to use it wi
 * Support injection of Database resources
 * Add idle/active timeouts
 * Add stats polling support
+* Add private app support (perhaps via router instead?)
+* Add mysql driver jar to Tomcat lib (TBD)
 
