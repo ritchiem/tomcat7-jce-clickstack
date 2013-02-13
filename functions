@@ -27,7 +27,7 @@ install_server_config() {
     cp -rf $plugin_dir/server/* $catalina_base
 
     echo "Injecting metadata into context.xml"
-    java -jar $plugin_dir/lib/genapp-setup-tomcat7.jar $app_dir
+    $(find_java) -jar $plugin_dir/lib/genapp-setup-tomcat7.jar $app_dir
 }
 
 install_app() {

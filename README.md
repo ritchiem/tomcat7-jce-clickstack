@@ -31,6 +31,18 @@ Note: You should be familiar with developing ClickStacks using the genapp system
 
     { "app": {  "plugins": ["tomcat7"] } }
 
+# Testing the plugin on CloudBees
+
+You can deploy the tomcat7-plugin.zip to S3 using the following command:
+
+    $ make publish_repo=dev publish
+
+If you don't have S3 creds or tools setup, follow the instructions in the publish error messages.
+
+Once the plugin is published to a public URL, you can update an app to use it with the CloudBees SDK:
+
+    $ bees app:deploy -a APP_ID -t tomcat7 -RPLUGIN.SRC.tomcat7=URL_TO_YOUR_PLUGIN_ZIP PATH_TO_WARFILE
+
 
 ## TODOs
 * Support injection of Database resources
