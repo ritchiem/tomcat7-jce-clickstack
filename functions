@@ -25,6 +25,9 @@ install_server_config() {
     echo "Installing server config"
     mkdir -p -m 770 $catalina_base
     cp -rf $plugin_dir/server/* $catalina_base
+
+    echo "Injecting metadata into context.xml"
+    java -jar $plugin_dir/lib/genapp-setup-tomcat7.jar $app_dir
 }
 
 install_app() {

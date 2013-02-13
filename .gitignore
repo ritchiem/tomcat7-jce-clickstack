@@ -1,6 +1,11 @@
+.DS_Store
+.classpath
+.project
+.settings
 lib/tomcat7.zip
-java
+lib/genapp-setup-tomcat7.jar
+java/*
 tomcat7-plugin.zip
 pkg
 s3cfg
-.DS_Store
+target
