@@ -37,16 +37,18 @@ public class ContextXMLTest {
         Document doc = ContextXmlBuilder.create(md).buildDocument();
 
         // dump the doc (for debugging)
-        //System.out.println(docAsString(doc));
+        System.out.println(docAsString(doc));
 
         // verify that the mydb datasource is defined and matches the expected
         // XML structure
         XPathFactory xPathfactory = XPathFactory.newInstance();
         XPath xpath = xPathfactory.newXPath();
-        XPathExpression expr = xpath
+        XPathExpression ds1Expr = xpath
                 .compile("/Context/Resource[@name='jdbc/mydb']");
-        Node node = (Node) expr.evaluate(doc, XPathConstants.NODE);
-        assertEquals(Node.ELEMENT_NODE, ((Node)expr.evaluate(doc, XPathConstants.NODE)).getNodeType());
+        Node node = (Node) ds1Expr.evaluate(doc, XPathConstants.NODE);
+        assertEquals(8, node.getAttributes().getLength());
+        assertEquals(Node.ELEMENT_NODE, ((Node) ds1Expr.evaluate(doc,
+                XPathConstants.NODE)).getNodeType());
         assertEquals("Container", node.getAttributes().getNamedItem("auth")
                 .getNodeValue());
         assertEquals("com.mysql.jdbc.Driver", node.getAttributes()
@@ -64,7 +66,35 @@ public class ContextXMLTest {
         // properties is verified above)
         XPathExpression expr2 = xpath
                 .compile("/Context/Resource[@name='jdbc/mydb2']");
-        assertEquals(Node.ELEMENT_NODE, ((Node)expr2.evaluate(doc, XPathConstants.NODE)).getNodeType());
+        assertEquals(Node.ELEMENT_NODE,
+                ((Node) expr2.evaluate(doc, XPathConstants.NODE)).getNodeType());
+
+        XPathExpression mailExpr = xpath
+                .compile("/Context/Resource[@name='mail/SendGrid']");
+        node = (Node) mailExpr.evaluate(doc, XPathConstants.NODE);
+        assertEquals(Node.ELEMENT_NODE, ((Node) mailExpr.evaluate(doc,
+                XPathConstants.NODE)).getNodeType());
+        assertEquals(12, node.getAttributes().getLength());
+        assertEquals("Container", node.getAttributes().getNamedItem("auth")
+                .getNodeValue());
+        assertEquals("true", node.getAttributes()
+                .getNamedItem("mail.smtp.auth").getNodeValue());
+        assertEquals("smtp.sendgrid.net", node.getAttributes()
+                .getNamedItem("mail.smtp.host").getNodeValue());
+        assertEquals("465", node.getAttributes()
+                .getNamedItem("mail.smtp.port").getNodeValue());
+        assertEquals("javax.net.ssl.SSLSocketFactory", node.getAttributes()
+                .getNamedItem("mail.smtp.socketFactory.class").getNodeValue());
+        assertEquals("false", node.getAttributes()
+                .getNamedItem("mail.smtp.socketFactory.fallback").getNodeValue());
+        assertEquals("true", node.getAttributes()
+                .getNamedItem("mail.smtp.ssl.enable").getNodeValue());
+        assertEquals("sendgrid_user", node.getAttributes()
+                .getNamedItem("mail.smtp.user").getNodeValue());
+        assertEquals("sendgrid_pass123", node.getAttributes()
+                .getNamedItem("password").getNodeValue());
+        assertEquals("javax.mail.Session",
+                node.getAttributes().getNamedItem("type").getNodeValue());
     }
 
     @Test
@@ -83,7 +113,7 @@ public class ContextXMLTest {
                 .fromExistingDoc(contextXmlIn).buildDocument();
 
         // dump the doc (for debugging)
-        //System.out.println(docAsString(doc));
+        // System.out.println(docAsString(doc));
 
         // verify that the mydb datasource is defined in the updated doc
         XPathFactory xPathfactory = XPathFactory.newInstance();
@@ -94,8 +124,10 @@ public class ContextXMLTest {
         assertEquals(Node.ELEMENT_NODE, node.getNodeType());
 
         // verify that previously existing WatchedResource element still exists
-        XPathExpression expr2 = xpath.compile("/Context/WatchedResource/text()");
-        String watchedResource = (String) expr2.evaluate(doc, XPathConstants.STRING);
+        XPathExpression expr2 = xpath
+                .compile("/Context/WatchedResource/text()");
+        String watchedResource = (String) expr2.evaluate(doc,
+                XPathConstants.STRING);
         assertEquals("WEB-INF/web.xml", watchedResource);
     }
 

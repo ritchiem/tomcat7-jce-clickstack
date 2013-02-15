@@ -19,6 +19,8 @@ install_tomcat7() {
     mkdir $tomcat7_dir
     unzip -qd $tomcat7_dir $plugin_dir/lib/tomcat7.zip
     chmod 755 $tomcat7_dir/bin/catalina.sh
+
+    cp $plugin_dir/lib/java-mail.jar $tomcat7_dir/lib
 }
 
 install_server_config() {

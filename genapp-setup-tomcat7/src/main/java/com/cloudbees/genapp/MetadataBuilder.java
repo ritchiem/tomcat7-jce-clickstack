@@ -9,7 +9,7 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.cloudbees.genapp.GenappMetadata.DataSource;
+import com.cloudbees.genapp.GenappMetadata.Resource;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -51,7 +51,9 @@ public class MetadataBuilder {
                 mb = mb.buildEnv(envNode);
         }
 
-        mb = mb.buildDataSourcesFromEnv(mb.md.appEnv);
+        mb = mb.buildResourcesFromEnv(mysqlTuple, Resource.TYPE_DATABASE);
+        mb = mb.buildResourcesFromEnv(mailTuple, Resource.TYPE_MAIL);
+        mb = mb.buildSendGridResourcesFromEnv();
 
         return mb.md;
     }
@@ -66,26 +68,45 @@ public class MetadataBuilder {
         return new MetadataBuilder(this.md.addEnvironment(envs));
     }
 
-    private MetadataBuilder buildDataSourcesFromEnv(Map<String, String> envs)
-            throws Exception {
-        Map<String, DataSource> datasources = new TreeMap<String, DataSource>();
+    /**
+     * Injects the old-style (deprecated) SendGrid resource.
+     */
+    private MetadataBuilder buildSendGridResourcesFromEnv() throws Exception {
+        Map<String, String> envs = md.appEnv;
+        if (envs.containsKey("SENDGRID_SMTP_HOST")) {
+            String host = envs.get("SENDGRID_SMTP_HOST");
+            String user = envs.get("SENDGRID_USERNAME");
+            String password = envs.get("SENDGRID_PASSWORD");
+            Resource r = new Resource("SendGrid", Resource.TYPE_MAIL);
+            r.properties.put("url", "smtps://" + host + ":" + 465 + "/");
+            r.properties.put("username", user);
+            r.properties.put("password", password);
+            return new MetadataBuilder(md.addResource(r));
+        }
+        return this;
+    }
+
+    private MetadataBuilder buildResourcesFromEnv(Pattern pattern,
+            String resourceType) throws Exception {
+        Map<String, String> envs = md.appEnv;
+        Map<String, Resource> resources = new TreeMap<String, Resource>();
         for (Map.Entry<String, String> e : envs.entrySet()) {
-            Matcher m = mysqlTuple.matcher(e.getKey());
+            Matcher m = pattern.matcher(e.getKey());
             if (m.matches()) {
                 String property = m.group(1).toLowerCase();
                 String alias = m.group(2).toLowerCase();
-                DataSource ds = datasources.get(alias);
+                Resource ds = resources.get(alias);
                 if (ds == null) {
-                    ds = new DataSource();
-                    ds.alias = alias;
-                    datasources.put(ds.alias, ds);
+                    ds = new Resource(alias, resourceType);
+                    resources.put(ds.alias, ds);
                 }
                 ds.properties.put(property, e.getValue());
             }
         }
 
-        return new MetadataBuilder(this.md.addDataSources(datasources));
+        return new MetadataBuilder(md.addResources(resources));
     }
 
-    private Pattern mysqlTuple = Pattern.compile("MYSQL_(.+)_([^_]+)");
+    private static Pattern mysqlTuple = Pattern.compile("MYSQL_(.+)_([^_]+)");
+    private static Pattern mailTuple = Pattern.compile("MAIL_(.+)_([^_]+)");
 }

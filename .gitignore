@@ -2,6 +2,7 @@
 .classpath
 .project
 .settings
+lib/java-mail.jar
 lib/tomcat7.zip
 lib/genapp-setup-tomcat7.jar
 java/*

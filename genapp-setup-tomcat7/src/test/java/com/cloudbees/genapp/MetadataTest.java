@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import com.cloudbees.genapp.GenappMetadata;
 import com.cloudbees.genapp.MetadataBuilder;
+import com.cloudbees.genapp.GenappMetadata.Resource;
 
 public class MetadataTest {
 
@@ -18,7 +19,7 @@ public class MetadataTest {
 
         GenappMetadata md = MetadataBuilder.fromStream(in);
         
-        assertEquals(md.appEnv.size(), 8);
+        assertEquals(md.appEnv.size(), 11);
         assertEquals("pass", md.appEnv.get("MYSQL_PASSWORD_MYDB"));
         assertEquals("10", md.appEnv.get("MYSQL_MAXACTIVE_MYDB"));
         assertEquals("test-db", md.appEnv.get("MYSQL_USERNAME_MYDB"));
@@ -28,20 +29,24 @@ public class MetadataTest {
         assertEquals("mysql://localhost:3306/my-test2-db", md.appEnv.get("MYSQL_URL_MYDB2"));
         assertEquals("configVal1", md.appEnv.get("configVar1"));
         
-        assertEquals(md.datasources.size(), 2);
-        GenappMetadata.DataSource ds = new GenappMetadata.DataSource();
-        ds.alias = "mydb";
+        assertEquals(md.resources.size(), 3);
+        GenappMetadata.Resource ds = new GenappMetadata.Resource("mydb", Resource.TYPE_DATABASE);
         ds.properties.put("password", "pass");
         ds.properties.put("maxactive", "10");
         ds.properties.put("username", "test-db");
         ds.properties.put("url", "mysql://localhost:3306/my-test-db");
-        assertEquals(ds, md.datasources.get("mydb"));
+        assertEquals(ds, md.resources.get("mydb"));
         
-        GenappMetadata.DataSource ds2 = new GenappMetadata.DataSource();
-        ds2.alias = "mydb2";
+        GenappMetadata.Resource ds2 = new GenappMetadata.Resource("mydb2", Resource.TYPE_DATABASE);
         ds2.properties.put("password", "pass");
         ds2.properties.put("username", "test2-db");
         ds2.properties.put("url", "mysql://localhost:3306/my-test2-db");
-        assertEquals(ds2, md.datasources.get("mydb2"));
+        assertEquals(ds2, md.resources.get("mydb2"));
+        
+        GenappMetadata.Resource sendgrid = new GenappMetadata.Resource("SendGrid", Resource.TYPE_MAIL);
+        sendgrid.properties.put("password", "sendgrid_pass123");
+        sendgrid.properties.put("username", "sendgrid_user");
+        sendgrid.properties.put("url", "smtps://smtp.sendgrid.net:465/");
+        assertEquals(sendgrid, md.resources.get("SendGrid"));
     }
 }

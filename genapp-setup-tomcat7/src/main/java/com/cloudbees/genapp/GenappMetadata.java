@@ -6,16 +6,16 @@ import java.util.TreeMap;
 
 public class GenappMetadata {
     public Map<String, String> appEnv;
-    public Map<String, DataSource> datasources;
+    public Map<String, Resource> resources;
     
     public GenappMetadata() {
         this.appEnv = new TreeMap<String, String>();
-        this.datasources = new TreeMap<String, DataSource>();
+        this.resources = new TreeMap<String, Resource>();
     }
     
     public GenappMetadata(GenappMetadata md) {
         this.appEnv = new TreeMap<String, String>(md.appEnv);
-        this.datasources = new TreeMap<String, DataSource>(md.datasources);
+        this.resources = new TreeMap<String, Resource>(md.resources);
     }
     
     public GenappMetadata addEnvironment(Map<String, String> env) {
@@ -24,21 +24,31 @@ public class GenappMetadata {
         return md;
     }
     
-    public GenappMetadata addDatasource(DataSource ds) {
+    public GenappMetadata addResource(Resource ds) {
         GenappMetadata md = new GenappMetadata(this);
-        md.datasources.put(ds.alias, ds);
+        md.resources.put(ds.alias, ds);
         return md;
     }
     
-    public GenappMetadata addDataSources(Map<String, DataSource> ds) {
+    public GenappMetadata addResources(Map<String, Resource> ds) {
         GenappMetadata md = new GenappMetadata(this);
-        md.datasources.putAll(ds);
+        md.resources.putAll(ds);
         return md;
     }
-
-    public static class DataSource {
+    
+    public static class Resource {
+        public static final String TYPE_DATABASE = "database";
+        public static final String TYPE_MAIL = "mail";
+        
         public String alias;
+        public String type;
         public Map<String, String> properties = new HashMap<String, String>();
+        
+        public Resource(String alias, String type) {
+            this.alias = alias;
+            this.type = type;
+        }
+        
         @Override
         public int hashCode() {
             final int prime = 31;
@@ -46,6 +56,7 @@ public class GenappMetadata {
             result = prime * result + ((alias == null) ? 0 : alias.hashCode());
             result = prime * result
                     + ((properties == null) ? 0 : properties.hashCode());
+            result = prime * result + ((type == null) ? 0 : type.hashCode());
             return result;
         }
         @Override
@@ -56,7 +67,7 @@ public class GenappMetadata {
                 return false;
             if (getClass() != obj.getClass())
                 return false;
-            DataSource other = (DataSource) obj;
+            Resource other = (Resource) obj;
             if (alias == null) {
                 if (other.alias != null)
                     return false;
@@ -66,6 +77,11 @@ public class GenappMetadata {
                 if (other.properties != null)
                     return false;
             } else if (!properties.equals(other.properties))
+                return false;
+            if (type == null) {
+                if (other.type != null)
+                    return false;
+            } else if (!type.equals(other.type))
                 return false;
             return true;
         }

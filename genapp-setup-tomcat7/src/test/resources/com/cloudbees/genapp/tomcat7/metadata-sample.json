@@ -14,7 +14,10 @@
             "configVar1": "configVal1",
             "MYSQL_PASSWORD_MYDB2": "pass",
             "MYSQL_USERNAME_MYDB2": "test2-db",
-            "MYSQL_URL_MYDB2": "mysql://localhost:3306/my-test2-db"
+            "MYSQL_URL_MYDB2": "mysql://localhost:3306/my-test2-db",
+            "SENDGRID_PASSWORD": "sendgrid_pass123",
+            "SENDGRID_USERNAME": "sendgrid_user",
+            "SENDGRID_SMTP_HOST": "smtp.sendgrid.net"
         }
     },
     "tomcat7": {
