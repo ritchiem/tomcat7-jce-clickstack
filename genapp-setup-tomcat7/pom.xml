@@ -9,7 +9,6 @@
   <name>GenApp Setup (Tomcat7)</name>
 
   <properties>
-    <dep.jackson>1.9.4</dep.jackson>
   </properties>
 
   <dependencies>
