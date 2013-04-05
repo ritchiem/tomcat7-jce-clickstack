@@ -11,7 +11,7 @@ include plugin.mk
 
 tomcat7_ver = 7.0.39
 tomcat7_url = http://mirror.nexcess.net/apache/tomcat/tomcat-7/v$(tomcat7_ver)/bin/apache-tomcat-$(tomcat7_ver).zip
-tomcat7_md5 = 1c7a7869d86b74dddb0a22d15f020922
+tomcat7_md5 = 30c6adc5b537be4bd098a4b30b5385a5
 
 lib/tomcat7.zip:
 	mkdir -p lib
