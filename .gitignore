@@ -4,3 +4,6 @@ tomcat7-plugin.zip
 pkg
 s3cfg
 .DS_Store
+.classpath
+.project
+.settings/
