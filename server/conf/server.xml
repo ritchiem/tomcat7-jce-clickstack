@@ -123,7 +123,11 @@
 
       <Host name="localhost"  appBase="webapps"
             unpackWARs="true" autoDeploy="true">
-
+        <Valve
+             className="org.apache.catalina.valves.RemoteIpValve"
+             remoteIpHeader="x-forwarded-for"
+             protocolHeader="x-forwarded-proto"
+             />
         <!-- SingleSignOn valve, share authentication between web applications
              Documentation at: /docs/config/valve.html -->
         <!--
