@@ -88,13 +88,13 @@ public class GenappMetadataBuilder {
                          genappResourceProperties.hasNext(); ) {
                         Map.Entry<String, JsonNode> genappResourceProperty = genappResourceProperties.next();
                         String genappResourcePropertyName = genappResourceProperty.getKey();
-                        JsonNode genappResourcePropertyValue = genappResourceProperty.getValue();
+                        JsonNode genappResourcePropertyValueNode = genappResourceProperty.getValue();
 
                         // We check if the current property not a reserved property ( ~ __.*__ ) and is well-formed.
                         if (!genappResourcePropertyName.matches("^__.*__$")
-                                && genappResourcePropertyValue.isTextual()) {
-                            String propertyValue = genappResourceProperty.getValue().asText();
-                            genappResource.addProperty(genappResourcePropertyName, propertyValue);
+                                && genappResourcePropertyValueNode.isTextual()) {
+                            String genappResourcePropertyValue = genappResourcePropertyValueNode.asText();
+                            genappResource.addProperty(genappResourcePropertyName, genappResourcePropertyValue);
                         }
                     }
                     genappResources.put(genappResourceName, genappResource);
