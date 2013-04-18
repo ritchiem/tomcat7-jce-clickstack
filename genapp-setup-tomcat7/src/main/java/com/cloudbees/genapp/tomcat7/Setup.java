@@ -11,8 +11,8 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.w3c.dom.Document;
 
-import com.cloudbees.genapp.GenappMetadata;
-import com.cloudbees.genapp.GenappMetadataBuilder;
+import com.cloudbees.genapp.Metadata;
+import com.cloudbees.genapp.MetadataBuilder;
 
 /*
  * This class contains the main method to get the Genapp metadata and configure Tomcat 7.
@@ -43,28 +43,28 @@ public class Setup {
         else
             metadataPath = env.get("genapp_dir") + "/metadata.json";
 
-        // Locate Tomcat 7 configuration file
-        File tomcatServerConfiguration = new File(configPath);
-        if (!tomcatServerConfiguration.exists())
-            throw new Exception("Missing context config file: " + tomcatServerConfiguration.getAbsolutePath());
+        // Locate Tomcat 7 context file
+        File contextXml = new File(configPath);
+        if (!contextXml.exists())
+            throw new Exception("Missing context config file: " + contextXml.getAbsolutePath());
 
         // Locate genapp's metadata.json
-        File genappMetadataJson = new File(metadataPath);
-        if (!genappMetadataJson.exists())
-            throw new Exception("Missing metadata file: " + genappMetadataJson.getAbsolutePath());
+        File metadataJson = new File(metadataPath);
+        if (!metadataJson.exists())
+            throw new Exception("Missing metadata file: " + metadataJson.getAbsolutePath());
 
 
-        // Load the metadata and inject its settings into the server configuration Document
-        GenappMetadata genappMetadata = GenappMetadataBuilder.fromFile(genappMetadataJson);
-        Document configurationDocument = TomcatContextXmlBuilder
-                .create(genappMetadata).fromExistingDoc(tomcatServerConfiguration).buildConfigurationDocument();
+        // Load the metadata and inject its settings into the server context Document
+        Metadata metadata = MetadataBuilder.fromFile(metadataJson);
+        Document contextDocument =
+                ContextXmlBuilder.create(metadata).fromExistingDoc(contextXml).buildContextDocument();
 
         // Write the content into XML file
-        TransformerFactory xmlTransformerFactory = TransformerFactory.newInstance();
-        Transformer xmlTransformer = xmlTransformerFactory.newTransformer();
-        xmlTransformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        xmlTransformer.setOutputProperty(OutputKeys.STANDALONE, "no");
+        TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        Transformer transformer = transformerFactory.newTransformer();
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+        transformer.setOutputProperty(OutputKeys.STANDALONE, "no");
 
-        xmlTransformer.transform(new DOMSource(configurationDocument), new StreamResult(tomcatServerConfiguration));
+        transformer.transform(new DOMSource(contextDocument), new StreamResult(contextXml));
     }
 }

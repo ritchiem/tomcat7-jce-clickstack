@@ -7,12 +7,12 @@ import java.util.Map;
  * The Resource class stores a Genapp resource characterized by name, type and parameters.
  */
 
-public class GenappResource {
+public class Resource {
     private String name;
     private String type;
     private HashMap<String, String> properties = new HashMap<String, String>();
 
-    public GenappResource(String name, String type) {
+    public Resource(String name, String type) {
         this.name = name;
         this.type = type;
     }
@@ -40,12 +40,12 @@ public class GenappResource {
         return properties;
     }
 
-    public GenappResource addProperty(String parameter, String value) {
+    public Resource addProperty(String parameter, String value) {
         properties.put(parameter, value);
         return this;
     }
 
-    public GenappResource addProperties(Map<String, String> properties) {
+    public Resource addProperties(Map<String, String> properties) {
         this.properties.putAll(properties);
         return this;
     }
@@ -72,14 +72,14 @@ public class GenappResource {
         if (this == comparedObject)
             return true;
 
-        // Then, if that failed, we make sure we are dealing with a GenappResource and return false if it's not.
+        // Then, if that failed, we make sure we are dealing with a Resource and return false if it's not.
         if (comparedObject == null)
             return false;
         if (getClass() != comparedObject.getClass())
             return false;
 
-        // If it's a GenappResource, we check for the class' variables to match and return false if they don't.
-        GenappResource comparedResource = (GenappResource) comparedObject;
+        // If it's a Resource, we check for the class' variables to match and return false if they don't.
+        Resource comparedResource = (Resource) comparedObject;
         if (name == null) {
             if (comparedResource.name != null)
                 return false;
