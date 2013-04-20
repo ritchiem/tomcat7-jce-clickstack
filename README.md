@@ -33,5 +33,5 @@ After successful build tomcat7-plugin.zip is created and can be uploaded to the 
 ## TODOs
 * Support injection of Database resources
 * Add idle/active timeouts
-* Add stats polling support
+
 

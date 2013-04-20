@@ -1,4 +1,5 @@
 lib/tomcat7.zip
+lib/simple-jmx-exporter-agent.jar
 java
 tomcat7-plugin.zip
 pkg
