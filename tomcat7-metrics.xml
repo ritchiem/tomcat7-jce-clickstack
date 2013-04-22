@@ -1,0 +1,122 @@
+<!--
+  ~ Copyright 2010-2012, CloudBees Inc.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License" />;
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<simple-jmx-exporter>
+    <queries>
+        <!-- OS -->
+        <query objectName="java.lang:type=OperatingSystem" attribute="SystemLoadAverage"
+               resultAlias="os_system_load"/>
+
+        <!-- MEMORY -->
+        <query objectName="java.lang:type=Memory" attribute="HeapMemoryUsage" key="committed"
+               resultAlias="memory_heap_committed"/>
+        <query objectName="java.lang:type=Memory" attribute="HeapMemoryUsage" key="max"
+               resultAlias="memory_heap_max"/>
+        <query objectName="java.lang:type=Memory" attribute="HeapMemoryUsage" key="used"
+               resultAlias="memory_heap_used"/>
+
+
+        <query objectName="java.lang:type=Memory" attribute="NonHeapMemoryUsage" key="committed"
+               resultAlias="memory_nonheap_committed"/>
+        <query objectName="java.lang:type=Memory" attribute="NonHeapMemoryUsage" key="max"
+               resultAlias="memory_nonheap_max"/>
+        <query objectName="java.lang:type=Memory" attribute="NonHeapMemoryUsage" key="used"
+               resultAlias="memory_nonheap_used"/>
+
+        <!-- MEMORY POOLS -->
+        <query objectName="java.lang:type=MemoryPool,name=Code Cache" attribute="Usage" key="used"
+               resultAlias="memory_code_cache_used"/>
+        <query objectName="java.lang:type=MemoryPool,name=Code Cache" attribute="Usage" key="committed"
+               resultAlias="memory_code_cache_committed"/>
+        <query objectName="java.lang:type=MemoryPool,name=Code Cache" attribute="PeakUsage" key="used"
+               resultAlias="memory_code_cache_peakUsed"/>
+        <query objectName="java.lang:type=MemoryPool,name=Code Cache" attribute="PeakUsage" key="committed"
+               resultAlias="memory_code_cache_peakCommitted"/>
+
+        <query objectName="java.lang:type=MemoryPool,name=PS Eden Space" attribute="Usage" key="used"
+               resultAlias="memory_ps_eden_space_used"/>
+        <query objectName="java.lang:type=MemoryPool,name=PS Eden Space" attribute="Usage" key="committed"
+               resultAlias="memory_ps_eden_space_committed"/>
+        <query objectName="java.lang:type=MemoryPool,name=PS Eden Space" attribute="PeakUsage" key="used"
+               resultAlias="memory_ps_eden_space_peakUsed"/>
+        <query objectName="java.lang:type=MemoryPool,name=PS Eden Space" attribute="PeakUsage" key="committed"
+               resultAlias="memory_ps_eden_space_peakCommitted"/>
+
+        <query objectName="java.lang:type=MemoryPool,name=PS Old Gen" attribute="Usage" key="used"
+               resultAlias="memory_ps_old_gen_used"/>
+        <query objectName="java.lang:type=MemoryPool,name=PS Old Gen" attribute="Usage" key="committed"
+               resultAlias="memory_ps_old_gen_committed"/>
+        <query objectName="java.lang:type=MemoryPool,name=PS Old Gen" attribute="PeakUsage" key="used"
+               resultAlias="memory_ps_old_gen_peakUsed"/>
+        <query objectName="java.lang:type=MemoryPool,name=PS Old Gen" attribute="PeakUsage" key="committed"
+               resultAlias="memory_ps_old_gen_peakCommitted"/>
+
+        <query objectName="java.lang:type=MemoryPool,name=PS Perm Gen" attribute="Usage" key="used"
+               resultAlias="memory_ps_perm_gen_used"/>
+        <query objectName="java.lang:type=MemoryPool,name=PS Perm Gen" attribute="Usage" key="committed"
+               resultAlias="memory_ps_perm_gen_committed"/>
+        <query objectName="java.lang:type=MemoryPool,name=PS Perm Gen" attribute="PeakUsage" key="used"
+               resultAlias="memory_ps_perm_gen_peakUsed"/>
+        <query objectName="java.lang:type=MemoryPool,name=PS Perm Gen" attribute="PeakUsage" key="committed"
+               resultAlias="memory_ps_perm_gen_peakCommitted"/>
+
+        <query objectName="java.lang:type=MemoryPool,name=PS Survivor Space" attribute="Usage" key="used"
+               resultAlias="memory_ps_survivor_space_used"/>
+        <query objectName="java.lang:type=MemoryPool,name=PS Survivor Space" attribute="Usage" key="committed"
+               resultAlias="memory_ps_survivor_space_committed"/>
+        <query objectName="java.lang:type=MemoryPool,name=PS Survivor Space" attribute="PeakUsage" key="used"
+               resultAlias="memory_ps_survivor_space_peakUsed"/>
+        <query objectName="java.lang:type=MemoryPool,name=PS Survivor Space" attribute="PeakUsage" key="committed"
+               resultAlias="memory_ps_survivor_space_peakCommitted"/>
+
+
+        <!-- THREADING -->
+        <query objectName="java.lang:type=Threading" attribute="ThreadCount"
+               resultAlias="threads_count"/>
+        <query objectName="java.lang:type=Threading" attribute="PeakThreadCount"
+               resultAlias="threads_peakCount"/>
+        <query objectName="java.lang:type=Threading" attribute="PeakThreadCount"
+               resultAlias="threads_peakCount"/>
+        <query objectName="java.lang:type=Threading" attribute="CurrentThreadCpuTime"
+               resultAlias="threads_cputime"/>
+
+        <query objectName="java.lang:type=ClassLoading" attribute="LoadedClassCount" 
+               resultAlias="classes_loaded"/>
+
+        <!-- TOMCAT -->
+        <query objectName="Catalina:type=GlobalRequestProcessor,name=*" attribute="requestCount"
+               resultAlias="threads_requestCount"/>
+        <query objectName="Catalina:type=GlobalRequestProcessor,name=*" attribute="errorCount"
+               resultAlias="threads_errorCount"/>
+        <query objectName="Catalina:type=GlobalRequestProcessor,name=*" attribute="bytesReceived"
+               resultAlias="threads_bytesReceived"/>
+        <query objectName="Catalina:type=GlobalRequestProcessor,name=*" attribute="bytesSent"
+               resultAlias="threads_bytesSent"/>
+        <query objectName="Catalina:type=GlobalRequestProcessor,name=*" attribute="processingTime"
+               resultAlias="threads_processingTime"/>
+
+        <!-- APPLICATION -->
+        <query objectName="Catalina:type=Manager,context=/,host=localhost" attribute="activeSessions"
+               resultAlias="application_activeSessions"/>
+        <query objectName="Catalina:type=Manager,context=/,host=localhost" attribute="expiredSessions"
+               resultAlias="application_expiredSessions"/>
+    </queries>
+
+    <outputWriter class="com.cloudbees.clickstack.java.monitoring.FileOverwriterOutputWriter">
+      <fileName>${tomcat7_metrics_data_file:simple-jmx-exporter.data}</fileName>
+    </outputWriter>
+
+    <collectIntervalInSeconds>20</collectIntervalInSeconds>
+</simple-jmx-exporter>

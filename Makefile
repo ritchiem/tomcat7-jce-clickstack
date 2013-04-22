@@ -3,9 +3,9 @@ publish_bucket = cloudbees-clickstack
 publish_repo = testing
 publish_url = s3://$(publish_bucket)/$(publish_repo)/
 
-deps = lib lib/tomcat7.zip java lib/genapp-setup-tomcat7.jar lib/java-mail.jar
+deps = lib lib/tomcat7.zip java lib/genapp-setup-tomcat7.jar lib/java-mail.jar lib/simple-jmx-exporter-agent.jar 
 
-pkg_files = control functions server setup lib java
+pkg_files = control functions server setup lib java tomcat7-metrics.xml
 
 include plugin.mk
 
@@ -22,8 +22,7 @@ JAVA_JARS = $(shell find genapp-setup-tomcat7/target -name "*.jar")
 lib:
 	mkdir -p lib
 
-lib/tomcat7.zip:
-	mkdir -p lib
+lib/tomcat7.zip: lib
 	curl -fLo lib/tomcat7.zip "$(tomcat7_url)"
 	unzip -qd lib lib/tomcat7.zip
 	rm -rf lib/apache-tomcat-$(tomcat7_ver)/webapps
@@ -31,13 +30,24 @@ lib/tomcat7.zip:
 	cd lib/apache-tomcat-$(tomcat7_ver); zip -r ../tomcat7.zip *
 	rm -rf lib/apache-tomcat-$(tomcat7_ver)A
 
-lib/java-mail.jar:
+lib/java-mail.jar: lib
 	curl -fLo lib/java-mail.jar "$(java_mail_url)"       
 	$(call check-md5,lib/java-mail.jar,$(java_mail_md5))
 
 lib/genapp-setup-tomcat7.jar: $(JAVA_SOURCES) $(JAVA_JARS)
 	cd genapp-setup-tomcat7; mvn clean test assembly:single;
 	cp genapp-setup-tomcat7/target/genapp-setup-tomcat7-*-jar-with-dependencies.jar lib/genapp-setup-tomcat7.jar
+
+
+simple_jmx_exporter_agent_ver = 1.0.0-20130420.084408-4
+simple_jmx_exporter_agent_url = https://repository-community.forge.cloudbees.com/snapshot/com/cloudbees/simple-jmx-exporter-agent/1.0.0-SNAPSHOT/simple-jmx-exporter-agent-1.0.0-20130420.084408-4.jar
+simple_jmx_exporter_agent_md5 = 6dfbae259edbe14cd9db6cf6cafbd660
+
+lib/simple-jmx-exporter-agent.jar:
+	mkdir -p lib
+	curl -fLo lib/simple-jmx-exporter-agent.jar "$(simple_jmx_exporter_agent_url)"
+	$(call check-md5,lib/simple-jmx-exporter-agent.jar,$(simple_jmx_exporter_agent_md5))
+
 
 java_plugin_gitrepo = git://github.com/CloudBees-community/java-clickstack.git
 

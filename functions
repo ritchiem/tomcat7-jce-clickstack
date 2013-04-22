@@ -51,6 +51,7 @@ write_config() {
     echo "catalina_home=$tomcat7_dir" >> $_config
     echo "catalina_base=$catalina_base" >> $_config
     echo "app_tmp=$app_dir/tmp" >> $_config
+    echo "log_dir=$log_dir" >> $_config
 }
 
 write_control() {
@@ -58,4 +59,19 @@ write_control() {
     install -m 550 $plugin_dir/control/start $control_dir
     install -m 550 $plugin_dir/control/stats-appstat $control_dir
     install -m 550 $plugin_dir/control/send_sigquit $control_dir
+}
+
+install_simple_jmx_exporter_agent() {
+    echo "Installing simple-jmx-exporter-agent"
+    _agent_jar=$plugin_dir/lib/simple-jmx-exporter-agent.jar
+    _agent_jar_dest=$genapp_dir/lib/simple-jmx-exporter-agent.jar
+    _agent_opts_file=$control_dir/java-opts-60-simple-jmx-exporter-agent
+    _agent_config_file=$plugin_dir/tomcat7-metrics.xml
+    _agent_config_file_dest=$control_dir/tomcat7-metrics.xml
+
+    cp $_agent_config_file $_agent_config_file_dest
+
+    mkdir -p $(dirname $_agent_jar_dest)
+    cp $_agent_jar $_agent_jar_dest
+    echo "-javaagent:$_agent_jar_dest=$_agent_config_file_dest -Dtomcat7_metrics_data_file=$log_dir/tomcat7-metrics.data" >> $_agent_opts_file
 }
