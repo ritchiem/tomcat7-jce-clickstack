@@ -87,8 +87,6 @@
                resultAlias="threads_count"/>
         <query objectName="java.lang:type=Threading" attribute="PeakThreadCount"
                resultAlias="threads_peakCount"/>
-        <query objectName="java.lang:type=Threading" attribute="PeakThreadCount"
-               resultAlias="threads_peakCount"/>
         <query objectName="java.lang:type=Threading" attribute="CurrentThreadCpuTime"
                resultAlias="threads_cputime"/>
 
