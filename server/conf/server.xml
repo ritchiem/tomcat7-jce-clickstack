@@ -68,6 +68,7 @@
          Define a non-SSL HTTP/1.1 Connector on port 8080
     -->
     <Connector port="${port.http}" protocol="HTTP/1.1"
+               URIEncoding="UTF-8"
                connectionTimeout="20000"
                redirectPort="8443" />
     <!-- A "Connector" using the shared thread pool-->
@@ -123,7 +124,11 @@
 
       <Host name="localhost"  appBase="webapps"
             unpackWARs="true" autoDeploy="true">
-
+        <Valve
+             className="org.apache.catalina.valves.RemoteIpValve"
+             remoteIpHeader="x-forwarded-for"
+             protocolHeader="x-forwarded-proto"
+             />
         <!-- SingleSignOn valve, share authentication between web applications
              Documentation at: /docs/config/valve.html -->
         <!--

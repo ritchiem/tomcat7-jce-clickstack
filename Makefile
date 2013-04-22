@@ -11,6 +11,7 @@ include plugin.mk
 
 tomcat7_ver = 7.0.39
 tomcat7_url = http://mirror.nexcess.net/apache/tomcat/tomcat-7/v$(tomcat7_ver)/bin/apache-tomcat-$(tomcat7_ver).zip
+tomcat7_md5 = 30c6adc5b537be4bd098a4b30b5385a5
 
 java_mail_url = http://repo1.maven.org/maven2/javax/mail/mail/1.4.5/mail-1.4.5.jar
 java_mail_md5 = ec6e4e5ebd85a221b395b8f3b37545e6

@@ -57,4 +57,5 @@ write_control() {
     echo "Writing control scripts to $control_dir"
     install -m 550 $plugin_dir/control/start $control_dir
     install -m 550 $plugin_dir/control/stats-appstat $control_dir
+    install -m 550 $plugin_dir/control/send_sigquit $control_dir
 }
