@@ -2,14 +2,12 @@
 .classpath
 .project
 .settings/
-<<<<<<< HEAD
 *.iml
 .idea
 lib
 java
 tomcat7-plugin.zip
-lib/tomcat7.zip
-lib/simple-jmx-exporter-agent.jar
+lib/
 pkg
 s3cfg
 target

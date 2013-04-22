@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<simple-jmx-exporter>
+<jmxtrans-agent>
     <queries>
         <!-- OS -->
         <query objectName="java.lang:type=OperatingSystem" attribute="SystemLoadAverage"
@@ -114,9 +114,9 @@
                resultAlias="application_expiredSessions"/>
     </queries>
 
-    <outputWriter class="com.cloudbees.clickstack.java.monitoring.FileOverwriterOutputWriter">
-      <fileName>${tomcat7_metrics_data_file:simple-jmx-exporter.data}</fileName>
+    <outputWriter class="org.jmxtrans.agent.FileOverwriterOutputWriter">
+      <fileName>${tomcat7_metrics_data_file:jmxtrans-agent.data}</fileName>
     </outputWriter>
 
     <collectIntervalInSeconds>20</collectIntervalInSeconds>
-</simple-jmx-exporter>
+</jmxtrans-agent>

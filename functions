@@ -61,11 +61,11 @@ write_control() {
     install -m 550 $plugin_dir/control/send_sigquit $control_dir
 }
 
-install_simple_jmx_exporter_agent() {
-    echo "Installing simple-jmx-exporter-agent"
-    _agent_jar=$plugin_dir/lib/simple-jmx-exporter-agent.jar
-    _agent_jar_dest=$genapp_dir/lib/simple-jmx-exporter-agent.jar
-    _agent_opts_file=$control_dir/java-opts-60-simple-jmx-exporter-agent
+install_jmxtrans_agent() {
+    echo "Installing jmxtrans-agent"
+    _agent_jar=$plugin_dir/lib/jmxtrans-agent.jar
+    _agent_jar_dest=$genapp_dir/lib/jmxtrans-agent.jar
+    _agent_opts_file=$control_dir/java-opts-60-jmxtrans-agent
     _agent_config_file=$plugin_dir/tomcat7-metrics.xml
     _agent_config_file_dest=$control_dir/tomcat7-metrics.xml
 
