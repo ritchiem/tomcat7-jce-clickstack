@@ -97,15 +97,15 @@
 
         <!-- TOMCAT -->
         <query objectName="Catalina:type=GlobalRequestProcessor,name=*" attribute="requestCount"
-               resultAlias="threads_requestCount"/>
+               resultAlias="request_requestCount"/>
         <query objectName="Catalina:type=GlobalRequestProcessor,name=*" attribute="errorCount"
-               resultAlias="threads_errorCount"/>
+               resultAlias="request_errorCount"/>
         <query objectName="Catalina:type=GlobalRequestProcessor,name=*" attribute="bytesReceived"
-               resultAlias="threads_bytesReceived"/>
+               resultAlias="request_bytesReceived"/>
         <query objectName="Catalina:type=GlobalRequestProcessor,name=*" attribute="bytesSent"
-               resultAlias="threads_bytesSent"/>
+               resultAlias="request_bytesSent"/>
         <query objectName="Catalina:type=GlobalRequestProcessor,name=*" attribute="processingTime"
-               resultAlias="threads_processingTime"/>
+               resultAlias="request_processingTime"/>
 
         <!-- APPLICATION -->
         <query objectName="Catalina:type=Manager,context=/,host=localhost" attribute="activeSessions"
