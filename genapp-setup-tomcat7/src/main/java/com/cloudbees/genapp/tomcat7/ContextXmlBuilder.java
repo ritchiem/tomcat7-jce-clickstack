@@ -1,183 +1,160 @@
 package com.cloudbees.genapp.tomcat7;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.cloudbees.genapp.GenappMetadata;
-import com.cloudbees.genapp.GenappMetadata.Resource;
+import org.xml.sax.SAXException;
+
+import com.cloudbees.genapp.Metadata;
+import com.cloudbees.genapp.Resource;
 
 public class ContextXmlBuilder {
-    private static String[] DATASOURCE_PROPS = new String[] {
-            "driverClassName", "username", "password", "url", "initialSize",
-            "maxActive", "minIdle", "maxIdle", "maxWait", "validationQuery",
-            "validationQueryTimeout", "testOnBorrow", "testOnReturn",
-            "timeBetweenEvictionRunsMillis", "numTestsPerEvictionRun",
-            "minEvictableIdleTimeMillis", "testWhileIdle", "removeAbandoned",
-            "removeAbandonedTimeout", "logAbandoned", "defaultAutoCommit",
-            "defaultReadOnly", "defaultTransactionIsolation",
-            "poolPreparedStatements", "maxOpenPreparedStatements",
-            "defaultCatalog", "connectionInitSqls", "connectionProperties",
-            "accessToUnderlyingConnectionAllowed" };
 
-    // name map for reversing toLower marshalling from the genapp env
-    private static Map<String, String> dsPropNameMap = dataSourcePropsMap();
+    private static List<String> ADDITIONAL_DATASOURCE_PROPERTIES = Arrays.asList(
+            "driverClassName", "initialSize", "maxActive", "minIdle", "maxIdle", "maxWait", "validationQuery",
+            "validationQueryTimeout", "testOnBorrow", "testOnReturn", "timeBetweenEvictionRunsMillis",
+            "numTestsPerEvictionRun", "minEvictableIdleTimeMillis", "testWhileIdle", "removeAbandoned",
+            "removeAbandonedTimeout", "logAbandoned", "defaultAutoCommit", "defaultReadOnly",
+            "defaultTransactionIsolation", "poolPreparedStatements", "maxOpenPreparedStatements", "defaultCatalog",
+            "connectionInitSqls", "connectionProperties", "accessToUnderlyingConnectionAllowed");
 
-    private Document doc;
-    private GenappMetadata md;
+    private Document contextDocument;
+    private Metadata metadata;
 
-    private ContextXmlBuilder(GenappMetadata md) throws Exception {
-        this.md = md;
+    private ContextXmlBuilder(Metadata metadata) {
+        this.metadata = metadata;
     }
 
-    public static ContextXmlBuilder create(GenappMetadata md) throws Exception {
-        ContextXmlBuilder b = new ContextXmlBuilder(md);
-        return b;
+    public static ContextXmlBuilder create(Metadata metadata) {
+        return new ContextXmlBuilder(metadata);
     }
 
-    private ContextXmlBuilder addResources(GenappMetadata md) {
-        for (Resource rs : md.resources.values()) {
-            if (rs.type.equals(Resource.TYPE_DATABASE)) {
-                addDataSource(rs);
-            } else if (rs.type.equals(Resource.TYPE_MAIL)) {
-                addMailSession(rs);
-            }
+    private ContextXmlBuilder addResources(Metadata metadata) {
+        for (Resource resource : metadata.getResources().values()) {
+            String resourceType = resource.getType();
+            addResource(resourceType, resource);
         }
-
         return this;
     }
 
-    private ContextXmlBuilder addDataSource(Resource ds) {
-        Element e = doc.createElement("Resource");
-        e.setAttribute("name", "jdbc/" + ds.alias);
-        e.setAttribute("auth", "Container");
-        e.setAttribute("type", "javax.sql.DataSource");
+    private ContextXmlBuilder addResource(String resourceType, Resource resource) {
+        if (resourceType.equals("database") || resourceType.equals("datasource"))
+            return addDatasource(resource);
+        else if (resourceType.equals("email"))
+            return addMailResource(resource);
+        else
+            return this;
+    }
 
-        for (Map.Entry<String, String> entry : ds.properties.entrySet()) {
-            String resourcePropName = dsPropNameMap.containsKey(entry.getKey()) ? dsPropNameMap
-                    .get(entry.getKey()) : entry.getKey();
-            String value = entry.getValue();
-            if (resourcePropName.equals("url")) {
-                if (!value.startsWith("jdbc:")) {
-                    value = "jdbc:" + value;
+    private ContextXmlBuilder addDatasource(Resource datasource) {
+        Element datasourceContextElement = contextDocument.createElement("Resource");
+        datasourceContextElement.setAttribute("name", "jdbc/" + datasource.getName());
+        datasourceContextElement.setAttribute("auth", "Container");
+        datasourceContextElement.setAttribute("type", "javax.sql.DataSource");
+
+        for (Map.Entry<String, String> datasourcePropertyEntry : datasource.getProperties().entrySet()) {
+            String datasourcePropertyKey = datasourcePropertyEntry.getKey();
+            String datasourcePropertyValue = datasourcePropertyEntry.getValue();
+
+            // Translate the basic parameters into java-compatible format.
+            if (datasourcePropertyKey.equals("DATABASE_URL")) {
+
+                // Convert to jdbc format
+                if (!datasourcePropertyValue.startsWith("jdbc:")) {
+                    datasourcePropertyValue = "jdbc:" + datasourcePropertyValue;
                 }
+                datasourceContextElement.setAttribute("url", datasourcePropertyValue);
 
-                // set the default driverClassName for MySQL
-                if (!e.hasAttribute("driverClassName")) {
-                    if (value.startsWith("jdbc:mysql")) {
-                        e.setAttribute("driverClassName",
-                                "com.mysql.jdbc.Driver");
+                // Guess the right driver to use.
+                if (!datasource.getProperties().containsKey("driverClassName")) {
+                    String driver;
+
+                    if (datasourcePropertyValue.startsWith("jdbc:postgresql")) {
+                        driver = "org.postgresql.Driver";
+                    } else if (datasourcePropertyValue.startsWith("jdbc:jtds")) {
+                        driver = "net.sourceforge.jtds.jdbc.Driver";
+                    } else if (datasourcePropertyValue.startsWith("jdbc:microsoft:sqlserver")) {
+                        driver = "com.microsoft.jdbc.sqlserver.SQLServerDriver";
+                    } else if (datasourcePropertyValue.startsWith("jdbc:oracle:thin")) {
+                        driver = "oracle.jdbc.driver.OracleDriver";
+                    } else {
+                        driver = "com.mysql.jdbc.Driver";
                     }
+                    datasourceContextElement.setAttribute("driverClassName", driver);
                 }
+            } else if (datasourcePropertyKey.equals("DATABASE_USERNAME")) {
+                datasourceContextElement.setAttribute("username", datasourcePropertyValue);
+            } else if (datasourcePropertyKey.equals("DATABASE_PASSWORD")) {
+                datasourceContextElement.setAttribute("password", datasourcePropertyValue);
+            } else if (ADDITIONAL_DATASOURCE_PROPERTIES.contains(datasourcePropertyKey)) {
+                datasourceContextElement.setAttribute(datasourcePropertyKey, datasourcePropertyValue);
             }
-            e.setAttribute(resourcePropName, value);
         }
 
-        doc.getDocumentElement().appendChild(e);
-
+        contextDocument.getDocumentElement().appendChild(datasourceContextElement);
         return this;
     }
     
-    private ContextXmlBuilder addMailSession(Resource rs) {
-        Element e = doc.createElement("Resource");
-        e.setAttribute("name", "mail/" + rs.alias);
-        e.setAttribute("auth", "Container");
-        e.setAttribute("type", "javax.mail.Session");
-        
-        //if there is a URL, attempt to setup the default settings
-        String url = rs.properties.get("url");
-        if(url != null) {
-            URI uri = URI.create(url);
-            e.setAttribute("mail.smtp.host", uri.getHost());
-            e.setAttribute("mail.smtp.port", uri.getPort() + "");
-            
-            String scheme = uri.getScheme();
-            if(scheme.equals("smtps")) {
-                e.setAttribute("mail.smtp.ssl.enable", "true");
-                e.setAttribute("mail.smtp.starttls.enable", "true");
-                e.setAttribute("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-                e.setAttribute("mail.smtp.socketFactory.fallback", "false");
-            }
-        }
-        
-        String username = rs.properties.get("username");
-        String password = rs.properties.get("password");
-        if(username != null || password != null) {
-            e.setAttribute("mail.smtp.auth", "true");
-        }
-
-        for (Map.Entry<String, String> entry : rs.properties.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            
-            if(key.equals("username"))
-                key = "mail.smtp.user";
-            
-            if(!key.equals("url"))
-                e.setAttribute(key, value);
-        }
-
-        doc.getDocumentElement().appendChild(e);
-
+    private ContextXmlBuilder addMailResource(Resource mailResource) {
+        Element mailContextElement = contextDocument.createElement("Resource");
+        mailContextElement.setAttribute("name", "mail/" + mailResource.getName());
+        mailContextElement.setAttribute("auth", "Container");
+        mailContextElement.setAttribute("type", "javax.mail.Session");
+        mailContextElement
+                .setAttribute("mail.smtp.user", mailResource.getProperties().get("SENDGRID_USERNAME"));
+        mailContextElement
+                .setAttribute("mail.smtp.password", mailResource.getProperties().get("SENDGRID_PASSWORD"));
+        mailContextElement
+                .setAttribute("mail.smtp.host", mailResource.getProperties().get("SENDGRID_SMTP_HOST"));
+        mailContextElement.setAttribute("mail.smtp.auth", "true");
+        contextDocument.getDocumentElement().appendChild(mailContextElement);
         return this;
     }
 
-    private static Map<String, String> dataSourcePropsMap() {
-        Map<String, String> m = new HashMap<String, String>();
-        for (String prop : DATASOURCE_PROPS) {
-            m.put(prop.toLowerCase(), prop);
-        }
-        return m;
-    }
-
-    public ContextXmlBuilder fromExistingDoc(Document doc) {
-        String rootElementName = doc.getDocumentElement().getNodeName();
-        if (!rootElementName.equals("Context")) {
-            throw new IllegalArgumentException(
-                    "Document is missing root <Context> element");
-        }
-        this.doc = doc;
+    public ContextXmlBuilder fromExistingDoc(Document contextDocument) {
+        String rootElementName = contextDocument.getDocumentElement().getNodeName();
+        if (!rootElementName.equals("Context"))
+            throw new IllegalArgumentException("Document is missing root <Context> element");
+        this.contextDocument = contextDocument;
         return this;
     }
 
-    public ContextXmlBuilder fromExistingDoc(File f) throws Exception {
-        DocumentBuilderFactory docFactory = DocumentBuilderFactory
-                .newInstance();
-        DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-        Document doc = docBuilder.parse(f);
-        fromExistingDoc(doc);
+    public ContextXmlBuilder fromExistingDoc(File file) throws ParserConfigurationException, IOException, SAXException {
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+        Document document = documentBuilder.parse(file);
+        fromExistingDoc(document);
         return this;
     }
 
-    public ContextXmlBuilder fromExistingDoc(InputStream in) throws Exception {
-        DocumentBuilderFactory docFactory = DocumentBuilderFactory
-                .newInstance();
-        DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-        Document doc = docBuilder.parse(in);
-        fromExistingDoc(doc);
+    public ContextXmlBuilder fromExistingDoc(InputStream inputStream)
+            throws IOException, SAXException, ParserConfigurationException {
+        DocumentBuilderFactory documentFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder documentBuilder = documentFactory.newDocumentBuilder();
+        Document contextDocument = documentBuilder.parse(inputStream);
+        fromExistingDoc(contextDocument);
         return this;
     }
 
-    public Document buildDocument() throws Exception {
-        if (this.doc == null) {
-            DocumentBuilderFactory docFactory = DocumentBuilderFactory
-                    .newInstance();
-            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-            this.doc = docBuilder.newDocument();
-            Element rootElement = doc.createElement("Context");
-            doc.appendChild(rootElement);
+    public Document buildContextDocument() throws ParserConfigurationException {
+        if (contextDocument == null) {
+            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder documentBuilder =documentBuilderFactory.newDocumentBuilder();
+            contextDocument = documentBuilder.newDocument();
+            Element rootContextDocumentElement = contextDocument.createElement("Context");
+            contextDocument.appendChild(rootContextDocumentElement);
         }
 
-        addResources(md);
-
-        return doc;
+        addResources(metadata);
+        return contextDocument;
     }
 }

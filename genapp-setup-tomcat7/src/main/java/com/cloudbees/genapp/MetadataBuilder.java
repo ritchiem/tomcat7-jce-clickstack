@@ -1,112 +1,105 @@
 package com.cloudbees.genapp;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import com.cloudbees.genapp.GenappMetadata.Resource;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.*;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
+
+/**
+ * The MetadataBuilder class builds a Metadata instance from the metadata.json File or InputStream.
+ */
+
 public class MetadataBuilder {
-    private GenappMetadata md;
+    private Metadata metadata;
 
     private MetadataBuilder() {
-        md = new GenappMetadata();
+        metadata = new Metadata();
     }
 
-    private MetadataBuilder(GenappMetadata md) {
-        this.md = md;
+    private MetadataBuilder(Metadata metadata) {
+        this.metadata = metadata;
     }
 
-    private MetadataBuilder(MetadataBuilder mb) {
-        md = mb.md;
-    }
-
-    public static GenappMetadata fromFile(File f) throws Exception {
-        FileInputStream in = new FileInputStream(f);
-        try {
-            return fromStream(in);
-        } finally {
-            if (in != null)
-                in.close();
-        }
-    }
-
-    public static GenappMetadata fromStream(InputStream in) throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-
-        JsonNode node = mapper.readTree(in);
-        MetadataBuilder mb = new MetadataBuilder();
-
-        JsonNode appNode = node.findValue("app");
-        if (appNode != null) {
-            JsonNode envNode = appNode.findValue("env");
-            if (envNode != null)
-                mb = mb.buildEnv(envNode);
-        }
-
-        mb = mb.buildResourcesFromEnv(mysqlTuple, Resource.TYPE_DATABASE);
-        mb = mb.buildResourcesFromEnv(mailTuple, Resource.TYPE_MAIL);
-        mb = mb.buildSendGridResourcesFromEnv();
-
-        return mb.md;
-    }
-
-    private MetadataBuilder buildEnv(JsonNode envNode) {
-        Map<String, String> envs = new TreeMap<String, String>(md.appEnv);
-        for (Iterator<Map.Entry<String, JsonNode>> fields = envNode.fields(); fields
-                .hasNext();) {
-            Map.Entry<String, JsonNode> env = fields.next();
-            envs.put(env.getKey(), env.getValue().asText());
-        }
-        return new MetadataBuilder(this.md.addEnvironment(envs));
+    private MetadataBuilder(MetadataBuilder metadataBuilder) {
+        metadata = metadataBuilder.metadata;
     }
 
     /**
-     * Injects the old-style (deprecated) SendGrid resource.
+     * @param metadataFile The metadata.json file
+     * @return A new Metadata instance, containing all resources parsed
+     * from the JSON metadata given as input.
+     * @throws IOException
      */
-    private MetadataBuilder buildSendGridResourcesFromEnv() throws Exception {
-        Map<String, String> envs = md.appEnv;
-        if (envs.containsKey("SENDGRID_SMTP_HOST")) {
-            String host = envs.get("SENDGRID_SMTP_HOST");
-            String user = envs.get("SENDGRID_USERNAME");
-            String password = envs.get("SENDGRID_PASSWORD");
-            Resource r = new Resource("SendGrid", Resource.TYPE_MAIL);
-            r.properties.put("url", "smtps://" + host + ":" + 465 + "/");
-            r.properties.put("username", user);
-            r.properties.put("password", password);
-            return new MetadataBuilder(md.addResource(r));
+    public static Metadata fromFile(File metadataFile) throws IOException {
+        FileInputStream metadataInputStream = new FileInputStream(metadataFile);
+        try {
+            return fromStream(metadataInputStream);
+        } finally {
+            metadataInputStream.close();
         }
-        return this;
     }
 
-    private MetadataBuilder buildResourcesFromEnv(Pattern pattern,
-            String resourceType) throws Exception {
-        Map<String, String> envs = md.appEnv;
+    /**
+     * @param metadataInputStream An InputStream to read the JSON metadata from.
+     * @return A new Metadata instance, containing all resources parsed
+     * from the JSON metadata given as input.
+     * @throws IOException
+     */
+    public static Metadata fromStream(InputStream metadataInputStream) throws IOException {
+        ObjectMapper metadataObjectMapper = new ObjectMapper();
+
+        JsonNode metadataRootNode = metadataObjectMapper.readTree(metadataInputStream);
+        MetadataBuilder metadataBuilder = new MetadataBuilder();
+
+        metadataBuilder = metadataBuilder.buildResources(metadataRootNode);
+        return metadataBuilder.metadata;
+    }
+
+    /**
+    * Parses resources and returns them in a new MetadataBuilder instance.
+    * @param metadataRootNode The root node of the Json metadata to be parsed.
+    * @return A new MetadataBuilder instance containing all parsed resources.
+    **/
+    private MetadataBuilder buildResources(JsonNode metadataRootNode) {
         Map<String, Resource> resources = new TreeMap<String, Resource>();
-        for (Map.Entry<String, String> e : envs.entrySet()) {
-            Matcher m = pattern.matcher(e.getKey());
-            if (m.matches()) {
-                String property = m.group(1).toLowerCase();
-                String alias = m.group(2).toLowerCase();
-                Resource ds = resources.get(alias);
-                if (ds == null) {
-                    ds = new Resource(alias, resourceType);
-                    resources.put(ds.alias, ds);
+
+        for (Iterator<Map.Entry<String, JsonNode>> resourceFields = metadataRootNode.fields();
+            resourceFields.hasNext(); ) {
+            Map.Entry<String, JsonNode> resourceEntry = resourceFields.next();
+            JsonNode resourceContent = resourceEntry.getValue();
+
+            // We check if the entry is a valid resource.
+            if (resourceContent.has("__resource_type__") && resourceContent.has("__resource_name__")) {
+                JsonNode resourceNameNode = resourceContent.get("__resource_name__");
+                JsonNode resourceTypeNode = resourceContent.get("__resource_type__");
+
+                // We check if the reserved attributes are well-formed.
+                if(resourceNameNode.isTextual() && resourceTypeNode.isTextual()) {
+                    String resourceName = resourceNameNode.asText();
+                    String resourceType = resourceTypeNode.asText();
+                    Resource resource = new Resource(resourceName, resourceType);
+
+                    // We then collect the resource's properties
+                    for (Iterator<Map.Entry<String, JsonNode>> resourceProperties = resourceContent.fields();
+                         resourceProperties.hasNext(); ) {
+                        Map.Entry<String, JsonNode> resourceProperty = resourceProperties.next();
+                        String resourcePropertyName = resourceProperty.getKey();
+                        JsonNode resourcePropertyValueNode = resourceProperty.getValue();
+
+                        // We check if the current property not a reserved property ( ~ __.*__ ) and is well-formed.
+                        if (!resourcePropertyName.matches("^__.*__$")
+                                && resourcePropertyValueNode.isTextual()) {
+                            String resourcePropertyValue = resourcePropertyValueNode.asText();
+                            resource.addProperty(resourcePropertyName, resourcePropertyValue);
+                        }
+                    }
+                    resources.put(resourceName, resource);
                 }
-                ds.properties.put(property, e.getValue());
             }
         }
-
-        return new MetadataBuilder(md.addResources(resources));
+        return new MetadataBuilder(metadata.addResources(resources));
     }
-
-    private static Pattern mysqlTuple = Pattern.compile("MYSQL_(.+)_([^_]+)");
-    private static Pattern mailTuple = Pattern.compile("MAIL_(.+)_([^_]+)");
 }
