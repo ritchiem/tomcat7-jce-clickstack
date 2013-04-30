@@ -36,7 +36,7 @@ install_app() {
     echo "Copying application files to $catalina_base/webapps/ROOT"
     mkdir -p -m 770 $catalina_base/webapps/ROOT
     mkdir -p -m 770 $catalina_base/server/work/Catalina/localhost/_
-    unzip -qd $catalina_base/webapps/ROOT $pkg_dir/app.war
+    unzip -qod $catalina_base/webapps/ROOT $pkg_dir/app.war
 }
 
 write_config() {
