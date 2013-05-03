@@ -2,82 +2,82 @@
 
 . "$plugin_dir/java/functions"
 
-catalina_base=$app_dir/server
-tomcat7_dir=$app_dir/tomcat7
+catalina_base="$app_dir/server"
+tomcat7_dir="$app_dir/tomcat7"
 config="$control_dir/config"
 
 create_app_skel() {
     echo "Creating application skeleton at $app_dir"
-    chmod 750 $app_dir
-    mkdir -m 750 $app_dir/lib
-    mkdir -m 750 $app_dir/conf
-    mkdir -m 770 $app_dir/tmp
+    chmod 750 "$app_dir"
+    mkdir -m 750 "$app_dir/lib"
+    mkdir -m 750 "$app_dir/conf"
+    mkdir -m 770 "$app_dir/tmp"
+    touch "$config"
+    chmod 640 "$config"
 }
 
 install_tomcat7() {
     echo "Installing tomcat7"
-    mkdir $tomcat7_dir
-    mkdir -p $catalina_base/conf
+    mkdir -m 750 "$tomcat7_dir"
 
-    unzip -qd $tomcat7_dir $plugin_dir/lib/tomcat7.zip
-    chmod 750 $tomcat7_dir/bin/catalina.sh
+    unzip -qd "$tomcat7_dir" "$plugin_dir/lib/tomcat7.zip"
+    chmod -R g-w,o-rwx "$tomcat7_dir"
 
     echo "Installing external libraries"
-    cp -a $plugin_dir/lib $tomcat7_dir
+    cp -a "$plugin_dir/lib" "$tomcat7_dir/"
 }
 
-install_simple_jmx_exporter_agent() {
-    echo "Installing simple-jmx-exporter-agent"
-    _agent_jar=$plugin_dir/lib/simple-jmx-exporter-agent.jar
-    _agent_jar_dest=$tomcat7_dir/lib/simple-jmx-exporter-agent.jar
-    _agent_opts_file=$control_dir/java-opts-60-simple-jmx-exporter-agent
-    _agent_config_file=$plugin_dir/conf/tomcat7-metrics.xml
-    _agent_config_file_dest=$app_dir/conf/tomcat7-metrics.xml
-    _agent_data_dest=$log_dir/tomcat7-metrics.data
+install_jmxtrans_agent() {
+    echo "Installing simple-jmxtrans-agent"
+    _agent_jar_dest="$tomcat7_dir/lib/jmxtrans-agent.jar"
+    _agent_opts_file="$control_dir/java-opts-60-jmxtrans-agent"
+    _agent_config_file="$plugin_dir/conf/tomcat7-metrics.xml"
+    _agent_config_file_dest="$app_dir/conf/tomcat7-metrics.xml"
+    _agent_data_dest="$log_dir/tomcat7-metrics.data"
 
-    cp $_agent_config_file $_agent_config_file_dest
+    install -m 640 "$_agent_config_file" "$_agent_config_file_dest"
 
-    _java_opts="-javaagent:$_agent_jar_dest=$_agent_config_file_dest "
-    _java_opts+="-Dtomcat7_metrics_data_file=$_agent_data_dest"
+    _java_opts="-javaagent:\"$_agent_jar_dest\"=\"$_agent_config_file_dest\""
+    _java_opts+=" -Dtomcat7_metrics_data_file=\"$_agent_data_dest\""
 
-    echo $_java_opts >> $_agent_opts_file
+    echo "$_java_opts" >> "$_agent_opts_file"
 }
 
 install_server_config() {
     echo "Installing server config"
-    mkdir -p -m 770 $catalina_base
-    cp -a $plugin_dir/server/* $catalina_base
+    mkdir -pm 750 "$catalina_base/conf"
+    install -m 640 "$plugin_dir/server/conf/"* "$catalina_base/conf/"
 
     echo "Injecting metadata into context.xml"
-    $(find_java) -jar $plugin_dir/lib/genapp-setup-tomcat7.jar
+    $(find_java) -jar "$plugin_dir/lib/genapp-setup-tomcat7.jar"
 }
 
 install_app() {
     echo "Copying application files to $catalina_base/webapps/ROOT"
-    mkdir -pm 770 $catalina_base/webapps/ROOT
-    mkdir -pm 770 $catalina_base/work/Catalina/localhost/_
-    unzip -qod $catalina_base/webapps/ROOT $pkg_dir/app.war
+    mkdir -pm 770 "$catalina_base/webapps/ROOT"
+    mkdir -pm 770 "$catalina_base/work/Catalina/localhost/_"
+    unzip -qod "$catalina_base/webapps/ROOT" "$pkg_dir/app.war"
 }
 
 write_config() {
     echo "Writing configuration to $config"
-    java=$(find_java)
+    java="$(find_java)"
     echo "Using Java at $java"
-    echo "app_dir=$app_dir" >> $config
-    echo "port=$app_port" >> $config
-    echo "java=$(find_java)" >> $config
-    echo "catalina_opts=-Dport.http=$app_port" >> $config
-    echo "catalina_home=$tomcat7_dir" >> $config
-    echo "catalina_base=$catalina_base" >> $config
-    _classpath="$tomcat7_dir/bin/bootstrap.jar"
+    echo "app_dir=\"$app_dir\"" >> "$config"
+    echo "port=$app_port" >> "$config"
+    echo "java=\"$(find_java)\"" >> "$config"
+    echo "catalina_opts=\"-Dport.http=$app_port\"" >> "$config"
+    echo "catalina_home=\"$tomcat7_dir\"" >> "$config"
+    echo "catalina_base=\"$catalina_base\"" >> "$config"
+    _classpath="\"$tomcat7_dir/bin/bootstrap.jar"
     _classpath+=":$tomcat7_dir/bin/tomcat-juli.jar"
-    _classpath+=":$tomcat7_dir/lib"
-    echo "java_classpath=$_classpath" >> $config
-    echo "app_tmp=$app_dir/tmp" >> $config
-    echo "log_dir=$log_dir" >> $config
+    _classpath+=":$tomcat7_dir/lib\""
+    echo "java_classpath=$_classpath" >> "$config"
+    echo "app_tmp=\"$app_dir/tmp\"" >> "$config"
+    echo "log_dir=\"$log_dir\"" >> "$config"
 }
 
 write_control() {
     echo "Writing control scripts to $control_dir"
-    install -m 550 $plugin_dir/control/* $control_dir
+    install -m 550 "$plugin_dir/control/"* "$control_dir/"
 }
