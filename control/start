@@ -17,7 +17,7 @@ $java \
   -Dcatalina.base=$catalina_base \
   -Djava.io.tmpdir=$app_tmp \
   $catalina_opts \
-  -cp $catalina_home/bin/bootstrap.jar:$catalina_home/bin/tomcat-juli.jar \
+  -cp $java_classpath \
   org.apache.catalina.startup.Bootstrap \
   start
 "
