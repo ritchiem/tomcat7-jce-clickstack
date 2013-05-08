@@ -12,8 +12,14 @@ create_app_skel() {
     mkdir -m 750 "$app_dir/lib"
     mkdir -m 750 "$app_dir/conf"
     mkdir -m 770 "$app_dir/tmp"
-    touch "$config"
-    chmod 640 "$config"
+    rm -rf "$control_dir/env"
+
+    # We need to initialize those files as they are going to be sourced later.
+    # Also, install_server_config step requires pre-existing files.
+    for _file in "$config" "$control_dir/env_safe" "$control_dir/env"; do
+        touch "$_file"
+        chmod 640 "$_file"
+    done
 }
 
 install_tomcat7() {
@@ -23,19 +29,26 @@ install_tomcat7() {
     unzip -qd "$tomcat7_dir" "$plugin_dir/lib/tomcat7.zip"
     chmod -R g-w,o-rwx "$tomcat7_dir"
 
+    # This step is required because the jar contains all dependencies
+    # Required to fullfill mail / database / session cache functions
+    # Check the pom.xml for more details when it comes to what's included
     echo "Installing external libraries"
-    cp -a "$plugin_dir/lib" "$tomcat7_dir/"
+    cp "$plugin_dir/lib/genapp-setup-tomcat7.jar" "$tomcat7_dir/lib/"
 }
 
 install_jmxtrans_agent() {
+    # The jmxtrans agent takes care of metrics reporting 
+    # which can be accessed with the control script stats-appstat
     echo "Installing simple-jmxtrans-agent"
-    _agent_jar_dest="$tomcat7_dir/lib/jmxtrans-agent.jar"
+    _agent_jar_file="$plugin_dir/lib/jmxtrans-agent.jar"
+    _agent_jar_dest="$genapp_dir/lib/jmxtrans-agent.jar"
     _agent_opts_file="$control_dir/java-opts-60-jmxtrans-agent"
     _agent_config_file="$plugin_dir/conf/tomcat7-metrics.xml"
     _agent_config_file_dest="$app_dir/conf/tomcat7-metrics.xml"
     _agent_data_dest="$log_dir/tomcat7-metrics.data"
 
     install -m 640 "$_agent_config_file" "$_agent_config_file_dest"
+    install -m 750 "$_agent_jar_file" "$_agent_jar_dest"
 
     _java_opts="-javaagent:\"$_agent_jar_dest\"=\"$_agent_config_file_dest\""
     _java_opts+=" -Dtomcat7_metrics_data_file=\"$_agent_data_dest\""
@@ -44,11 +57,17 @@ install_jmxtrans_agent() {
 }
 
 install_server_config() {
+    # We install the base configuration, which will be overwritten with
+    # the metadata by the genapp-setup-tomcat7 jar.
     echo "Installing server config"
-    mkdir -pm 750 "$catalina_base/conf"
+    mkdir -pm 770 "$catalina_base/conf"
     install -m 640 "$plugin_dir/server/conf/"* "$catalina_base/conf/"
 
     echo "Injecting metadata into context.xml"
+    # This jar writes metadata to: 
+    # $control_dir/env_safe
+    # $control_dir/env
+    # $catalina_base/conf/context.xml
     $(find_java) -jar "$plugin_dir/lib/genapp-setup-tomcat7.jar"
 }
 
@@ -56,6 +75,9 @@ install_app() {
     echo "Copying application files to $catalina_base/webapps/ROOT"
     mkdir -pm 770 "$catalina_base/webapps/ROOT"
     mkdir -pm 770 "$catalina_base/work/Catalina/localhost/_"
+
+    # Here the -o flag is necessary as sometimes the zip archives may
+    # contain twice the same file.
     unzip -qod "$catalina_base/webapps/ROOT" "$pkg_dir/app.war"
 }
 
@@ -63,18 +85,22 @@ write_config() {
     echo "Writing configuration to $config"
     java="$(find_java)"
     echo "Using Java at $java"
-    echo "app_dir=\"$app_dir\"" >> "$config"
+    echo "app_dir=\"$app_dir\"" >> "$config" 
+    echo "app_tmp=\"$app_dir/tmp\"" >> "$config"
+    echo "log_dir=\"$log_dir\"" >> "$config"
+    echo "catalina_home=\"$tomcat7_dir\"" >> "$config"
+    echo "catalina_base=\"$catalina_base\"" >> "$config"
+
     echo "port=$app_port" >> "$config"
     echo "java=\"$(find_java)\"" >> "$config"
     echo "catalina_opts=\"-Dport.http=$app_port\"" >> "$config"
-    echo "catalina_home=\"$tomcat7_dir\"" >> "$config"
-    echo "catalina_base=\"$catalina_base\"" >> "$config"
+
+    # We installed additional libraries in $tomcat7_dir/lib at the 
+    # install_tomcat7 step, which means that we have to add them to the CP.
     _classpath="\"$tomcat7_dir/bin/bootstrap.jar"
     _classpath+=":$tomcat7_dir/bin/tomcat-juli.jar"
     _classpath+=":$tomcat7_dir/lib\""
     echo "java_classpath=$_classpath" >> "$config"
-    echo "app_tmp=\"$app_dir/tmp\"" >> "$config"
-    echo "log_dir=\"$log_dir\"" >> "$config"
 }
 
 write_control() {

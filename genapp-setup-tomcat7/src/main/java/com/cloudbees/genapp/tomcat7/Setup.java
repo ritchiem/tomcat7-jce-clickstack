@@ -1,5 +1,6 @@
 package com.cloudbees.genapp.tomcat7;
 
+import com.cloudbees.genapp.metadata.EnvBuilder;
 import com.cloudbees.genapp.metadata.MetadataFinder;
 
 /*
@@ -17,7 +18,12 @@ public class Setup {
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
-        ContextXmlBuilder contextXmlBuilder = new ContextXmlBuilder();
-        MetadataFinder.setup("/server/conf/context.xml", contextXmlBuilder);
+        MetadataFinder metadataFinder = new MetadataFinder();
+        // Build the environment with bash-safe names, and no deprecated values.
+        metadataFinder.setup("/.genapp/control/env_safe", new EnvBuilder(true, false));
+        // Build the environment properties (bash-unsafe)
+        metadataFinder.setup("/.genapp/control/env", new EnvBuilder(false, false));
+        // Build Tomcat 7 context.xml file
+        metadataFinder.setup("/server/conf/context.xml", new ContextXmlBuilder());
     }
 }

@@ -1,6 +1,7 @@
 package com.cloudbees.genapp.resource;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -61,6 +62,16 @@ public class Resource {
 
     public Map<String, String> getProperties() {
         return properties;
+    }
+
+    public Map<String, String> filterProperties(List<String> filter) {
+        Map<String, String> filteredProperties = new HashMap<String, String>();
+        for (String propertyName : filter) {
+            if (properties.containsKey(propertyName)){
+                filteredProperties.put(propertyName, properties.get(propertyName));
+            }
+        }
+        return filteredProperties;
     }
 
     public static class Builder {

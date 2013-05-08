@@ -19,14 +19,20 @@ import java.util.TreeMap;
 
 public class Metadata {
     private Map<String, Resource> resources;
+    private Map<String, String> environment;
     
-    public Metadata(Map<String, Resource> resources) {
+    public Metadata(Map<String, Resource> resources, Map<String, String> environment) {
         this.resources = new TreeMap<String, Resource>();
         this.resources.putAll(resources);
+        this.environment = environment;
     }
 
     public Map<String, Resource> getResources() {
         return resources;
+    }
+
+    public Map<String, String> getEnvironment() {
+        return environment;
     }
 
     public static class Builder {
@@ -68,32 +74,51 @@ public class Metadata {
          **/
         private Metadata buildResources(JsonNode metadataRootNode) {
             Map<String, Resource> resources = new TreeMap<String, Resource>();
+            Map<String, String> environment = new TreeMap<String,String>();
 
-            for (Iterator<Map.Entry<String, JsonNode>> resourceFields = metadataRootNode.fields();
-                 resourceFields.hasNext(); ) {
+            // We iterate over all the metadata fields, resources or not.
+            for (Iterator<Map.Entry<String, JsonNode>> fields = metadataRootNode.fields();
+                 fields.hasNext(); ) {
 
-                Map.Entry<String, JsonNode> resourceEntry = resourceFields.next();
-                JsonNode resourceContent = resourceEntry.getValue();
-                Map<String, String> resourceMetadata = new HashMap<String, String>();
+                Map.Entry<String, JsonNode> entry = fields.next();
+                JsonNode content = entry.getValue();
+                String id = entry.getKey();
+                Map<String, String> entryMetadata = new HashMap<String, String>();
 
-                for (Iterator<Map.Entry<String, JsonNode>> resourceProperties = resourceContent.fields();
-                     resourceProperties.hasNext(); ) {
-                    Map.Entry<String, JsonNode> resourceProperty = resourceProperties.next();
-                    String resourceEntryName = resourceProperty.getKey();
-                    JsonNode resourceEntryValueNode = resourceProperty.getValue();
+                // We then iterate over all the key-value pairs present
+                for (Iterator<Map.Entry<String, JsonNode>> properties = content.fields();
+                     properties.hasNext(); ) {
+                    Map.Entry<String, JsonNode> property = properties.next();
+                    String entryName = property.getKey();
+                    JsonNode entryValueNode = property.getValue();
 
-                    // We check if the is well-formed.
-                    if (resourceEntryValueNode.isTextual()) {
-                        String resourceEntryValue = resourceEntryValueNode.asText();
-                        resourceMetadata.put(resourceEntryName, resourceEntryValue);
-                        Resource resource = Resource.Builder.buildResource(resourceMetadata);
-                        if (resource != null) {
-                            resources.put(resource.getName(), resource);
+                    // We check if the entry is well-formed.
+                    if (entryValueNode.isTextual()) {
+                        String entryValue = entryValueNode.asText();
+                        entryMetadata.put(entryName, entryValue);
+                    }
+
+                    // We get environment variables from the metadata when we iterate over "app"
+                    if (id.equals("app") && entryName.equals("env")) {
+                        for (Iterator<Map.Entry<String, JsonNode>> envVariables = entryValueNode.fields();
+                             envVariables.hasNext();) {
+                            Map.Entry<String, JsonNode> envVariable = envVariables.next();
+                            String envName = envVariable.getKey();
+                            JsonNode envValue = envVariable.getValue();
+                            if (envValue.isTextual()) {
+                                environment.put(envName, envValue.asText());
+                            }
                         }
                     }
                 }
+
+                Resource resource = Resource.Builder.buildResource(entryMetadata);
+                // Check if the resource was valid.
+                if (resource != null) {
+                    resources.put(resource.getName(), resource);
+                }
             }
-            return new Metadata(resources);
+            return new Metadata(resources, environment);
         }
     }
 }

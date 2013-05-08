@@ -13,42 +13,50 @@ public class MetadataFinder {
      * METADATA_PATH = $genapp_dir/metadata.json
      * @throws Exception
      */
+    private Metadata metadata;
 
-    public static void setup (String configurationRelativePath, ConfigurationBuilder configurationBuilder)
-        throws Exception{
-        setup(configurationRelativePath, configurationBuilder, null, null);
+    public MetadataFinder() throws Exception {
+        this(null);
     }
-    public static void setup (String configurationRelativePath, ConfigurationBuilder configurationBuilder,
-                              String defaultMetadataPath, String defaultConfigurationPath)
-            throws Exception {
 
+    public MetadataFinder(String defaultMetadataPath) throws Exception {
         Map<String, String> env = System.getenv();
-        String configurationPath;
         String metadataPath;
-
-        if (defaultConfigurationPath != null)
-            configurationPath = defaultConfigurationPath;
-        else
-            configurationPath = env.get("app_dir") + configurationRelativePath;
 
         if (defaultMetadataPath != null)
             metadataPath = defaultMetadataPath;
         else
             metadataPath = env.get("genapp_dir") + "/metadata.json";
 
-        // Locate Tomcat 7 context file
-        File configurationFile = new File(configurationPath);
-        if (!configurationFile.exists())
-            throw new Exception("Missing context config file: " + configurationFile.getAbsolutePath());
-
         // Locate genapp's metadata.json
         File metadataJson = new File(metadataPath);
         if (!metadataJson.exists())
             throw new Exception("Missing metadata file: " + metadataJson.getAbsolutePath());
 
+        metadata = Metadata.Builder.fromFile(metadataJson);
+    }
 
-        // Load the metadata and inject its settings into the server context Document
-        Metadata metadata = Metadata.Builder.fromFile(metadataJson);
+    public void setup (String configurationRelativePath, ConfigurationBuilder configurationBuilder)
+        throws Exception{
+        setup(configurationRelativePath, configurationBuilder, null);
+    }
+
+    public void setup (String configurationRelativePath, ConfigurationBuilder configurationBuilder,
+                       String defaultConfigurationPath) throws Exception {
+
+        Map<String, String> env = System.getenv();
+        String configurationPath;
+
+        if (defaultConfigurationPath != null)
+            configurationPath = defaultConfigurationPath;
+        else
+            configurationPath = env.get("app_dir") + configurationRelativePath;
+
+        // Locate configuration file
+        File configurationFile = new File(configurationPath);
+        if (!configurationFile.exists())
+            throw new Exception("Missing context config file: " + configurationFile.getAbsolutePath());
+
         configurationBuilder.writeConfiguration(metadata, configurationFile);
     }
 }

@@ -1,13 +1,40 @@
 #!/bin/bash
+
 set -e
 set -u
 
 control_dir="$(dirname $0)"
-. "$control_dir/config"
 . "$control_dir/java/functions"
 
-java_opts="$(java_opts $control_dir)"
+# We export the following because those contain environment variables
+# Which may be useful to the application
+. "$control_dir/config"
+. "$control_dir/env_safe"
 
+# If -Pdebug=true then we give some additional output to help stack debugging.
+if [[ "$debug" == "true" ]]; then 
+	echo -e "\n##### BEGIN TOMCAT7 INFO #####"
+	_dir=$(pwd)
+	cd "$app_dir/.genapp/setup_status"
+		for _file in *; do
+			echo -e "\n----- Setup status for $_file is: -----" 
+			cat "$_file"
+		done
+    cd "$_dir"
+    echo -e "\n----- Context.xml file is: -----"
+	cat "$app_dir/server/conf/context.xml"
+	echo -e "\n----- Env file is: -----"
+	cat "$control_dir/env"
+	echo -e "\n----- Env_safe file is: -----"
+	cat "$control_dir/env_safe"
+	echo -e "\n----- Config file is: -----"
+	cat "$control_dir/config"
+	echo -e "\n----- Metadata file is: -----"
+	cat "$app_dir/.genapp/metadata.json"
+	echo -e "\n##### END TOMCAT7 INFO #####"
+fi
+
+java_opts="$(java_opts $control_dir)"
 export CATALINA_OPTS="$catalina_opts"
 
 exec bash -c "

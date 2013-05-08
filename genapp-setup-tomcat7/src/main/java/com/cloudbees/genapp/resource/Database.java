@@ -2,6 +2,7 @@ package com.cloudbees.genapp.resource;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class Database extends Resource {
 
@@ -11,11 +12,27 @@ public class Database extends Resource {
     public static final List<String> TYPES = Arrays.asList("datasource", "database");
 
     public static String getDriver(String url) {
-        return "mysql";
+        if (url.matches("^mysql://.*$"))
+            return "mysql";
+        else if (url.matches("^sqlserver://.*$"))
+            return "sql";
+        else if (url.matches("^postgresql://.*$"))
+            return "postgres";
+        else if (url.matches("^oracle:.*$"))
+            return "oracle";
+        return null;
     }
 
     public static String getJavaDriver(String driver) {
-        return "com.mysql.jdbc.Driver";
+        if (driver.equals("mysql"))
+            return "com.mysql.jdbc.Driver";
+        else if (driver.equals("sql"))
+            return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+        else if (driver.equals("postgres"))
+            return "org.postgresql.Driver";
+        else if (driver.equals("oracle"))
+            return "oracle.jdbc.OracleDriver";
+        return null;
     }
 
     static boolean checkResource(Resource resource) {
@@ -25,6 +42,7 @@ public class Database extends Resource {
             isValid = isValid && resource.getProperty(URL_PROPERTY) != null;
             isValid = isValid && resource.getProperty(USERNAME_PROPERTY) != null;
             isValid = isValid && resource.getProperty(PASSWORD_PROPERTY) != null;
+            isValid = isValid && getDriver(resource.getProperty(URL_PROPERTY)) != null;
         }
         return isValid;
     }

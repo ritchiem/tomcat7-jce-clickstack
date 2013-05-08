@@ -1,6 +1,9 @@
 package com.cloudbees.genapp.tomcat7;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -23,6 +26,12 @@ public class ContextXmlBuilder implements ConfigurationBuilder {
 
     private Document contextDocument;
     private Metadata metadata;
+    private List<String> databaseProperties = Arrays.asList("minIdle", "maxIdle", "maxActive", "maxWait",
+            "validationQuery", "validationQueryTimeout", "testOnBorrow", "testOnReturn",
+            "timeBetweenEvictionRunsMillis", "numTestsPerEvictionRun", "minEvictableIdleTimeMillis", "testWhileIdle",
+            "removeAbandoned", "removeAbandonedTimeout", "logAbandoned", "defaultAutoCommit", "defaultReadOnly",
+            "defaultTransactionIsolation", "poolPreparedStatements", "maxOpenPreparedStatements", "defaultCatalog",
+            "connectionInitSqls", "connectionProperties", "accessToUnderlyingConnectionAllowed");
 
     public ContextXmlBuilder() {}
 
@@ -57,6 +66,11 @@ public class ContextXmlBuilder implements ConfigurationBuilder {
         e.setAttribute("driverClassName", database.getJavaDriver());
         e.setAttribute("username", database.getUsername());
         e.setAttribute("password", database.getPassword());
+
+        Map<String, String> optionalParameters = database.filterProperties(databaseProperties);
+        for (Map.Entry<String, String> entry : optionalParameters.entrySet()) {
+            e.setAttribute(entry.getKey(), entry.getValue());
+        }
 
         contextDocument.getDocumentElement().appendChild(e);
         return this;
@@ -112,7 +126,7 @@ public class ContextXmlBuilder implements ConfigurationBuilder {
     private Document buildContextDocument() throws ParserConfigurationException {
         if (contextDocument == null) {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder documentBuilder =documentBuilderFactory.newDocumentBuilder();
+            DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
             contextDocument = documentBuilder.newDocument();
             Element rootContextDocumentElement = contextDocument.createElement("Context");
             contextDocument.appendChild(rootContextDocumentElement);
