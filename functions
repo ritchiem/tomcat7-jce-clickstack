@@ -39,7 +39,7 @@ install_tomcat7() {
 install_jmxtrans_agent() {
     # The jmxtrans agent takes care of metrics reporting 
     # which can be accessed with the control script stats-appstat
-    echo "Installing simple-jmxtrans-agent"
+    echo "Installing jmxtrans agent"
     _agent_jar_file="$plugin_dir/lib/jmxtrans-agent.jar"
     _agent_jar_dest="$genapp_dir/lib/jmxtrans-agent.jar"
     _agent_opts_file="$control_dir/java-opts-60-jmxtrans-agent"
@@ -63,7 +63,7 @@ install_server_config() {
     mkdir -pm 770 "$catalina_base/conf"
     install -m 640 "$plugin_dir/server/conf/"* "$catalina_base/conf/"
 
-    echo "Injecting metadata into context.xml"
+    echo "Injecting metadata into configuration files"
     # This jar writes metadata to: 
     # $control_dir/env_safe
     # $control_dir/env

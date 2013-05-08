@@ -46,10 +46,7 @@ Once the plugin is published to a public URL, you can update an app to use it wi
 
 
 ## TODOs
-- [x] Support injection of Database resources
-- [x] Support injection of Mail resources
 - [ ] Add idle/active timeouts
-- [x] Add stats polling support
 - [ ] Add private app support (perhaps via router instead?)
-- [ ] Add mysql driver jar to Tomcat lib (TBD)
+- [ ] Add cloudbees-web.xml support
 
