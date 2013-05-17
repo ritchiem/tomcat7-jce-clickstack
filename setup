@@ -12,6 +12,7 @@ install_jmxtrans_agent
 install_java_control_functions
 install_server_config
 install_app
+write_metadata
 write_config
 write_java_opts
 write_control

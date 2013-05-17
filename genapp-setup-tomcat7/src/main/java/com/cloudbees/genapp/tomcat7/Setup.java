@@ -1,7 +1,6 @@
 package com.cloudbees.genapp.tomcat7;
 
-import com.cloudbees.genapp.metadata.EnvBuilder;
-import com.cloudbees.genapp.metadata.MetadataFinder;
+import com.cloudbees.genapp.metadata.*;
 
 /*
  * This class contains the main method to get the Genapp metadata and configure Tomcat 7.
@@ -19,11 +18,13 @@ public class Setup {
      */
     public static void main(String[] args) throws Exception {
         MetadataFinder metadataFinder = new MetadataFinder();
-        // Build the environment with bash-safe names, and no deprecated values.
-        metadataFinder.setup("/.genapp/control/env_safe", new EnvBuilder(true, false));
-        // Build the environment properties (bash-unsafe)
-        metadataFinder.setup("/.genapp/control/env", new EnvBuilder(false, false));
-        // Build Tomcat 7 context.xml file
-        metadataFinder.setup("/server/conf/context.xml", new ContextXmlBuilder());
+        Metadata metadata = metadataFinder.getMetadata();
+
+        EnvBuilder safeEnvBuilder = new EnvBuilder(true, false, metadata);
+        safeEnvBuilder.writeControlFile("/env_safe");
+        EnvBuilder unsafeEnvBuilder = new EnvBuilder(true, false, metadata);
+        unsafeEnvBuilder.writeControlFile("/env");
+        ContextXmlBuilder contextXmlBuilder = new ContextXmlBuilder(metadata);
+        contextXmlBuilder.injectToFile("/server/conf/context.xml");
     }
 }

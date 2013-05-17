@@ -12,6 +12,8 @@ create_app_skel() {
     mkdir -m 750 "$app_dir/lib"
     mkdir -m 750 "$app_dir/conf"
     mkdir -m 770 "$app_dir/tmp"
+
+    # This will be rewritten by the stack during write_metadata
     rm -rf "$control_dir/env"
 
     # We need to initialize those files as they are going to be sourced later.
@@ -62,13 +64,6 @@ install_server_config() {
     echo "Installing server config"
     mkdir -pm 770 "$catalina_base/conf"
     install -m 640 "$plugin_dir/server/conf/"* "$catalina_base/conf/"
-
-    echo "Injecting metadata into configuration files"
-    # This jar writes metadata to: 
-    # $control_dir/env_safe
-    # $control_dir/env
-    # $catalina_base/conf/context.xml
-    $(find_java) -jar "$plugin_dir/lib/genapp-setup-tomcat7.jar"
 }
 
 install_app() {
@@ -78,7 +73,29 @@ install_app() {
 
     # Here the -o flag is necessary as sometimes the zip archives may
     # contain twice the same file.
-    unzip -qod "$catalina_base/webapps/ROOT" "$pkg_dir/app.war"
+    _app_root="$catalina_base/webapps/ROOT"
+    unzip -qod "$_app_root" "$pkg_dir/app.war"
+
+    # Allows for server.xml override by customers.
+    if [ -e "$_app_root/META-INF/server.xml" ]; then
+        install -m 640 "$_app_root/META-INF/server.xml" "$catalina_base/conf/"
+    fi
+
+    # Allows to add some jars in the classpath if necessary.
+    for _file in "$_app_root/META-INF/lib/"*.jar; do
+        if [ -e "_file" ]; then
+            cp "$_file" "$tomcat7_dir/lib/"        
+        fi
+    done
+}
+
+write_metadata() {
+    echo "Injecting metadata into configuration files"
+    # This jar writes metadata to: 
+    # $control_dir/env_safe
+    # $control_dir/env
+    # $catalina_base/conf/context.xml
+    $(find_java) -jar "$plugin_dir/lib/genapp-setup-tomcat7.jar"
 }
 
 write_config() {

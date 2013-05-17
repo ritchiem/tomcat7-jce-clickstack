@@ -1,17 +1,10 @@
 package com.cloudbees.genapp.metadata;
 
 import com.cloudbees.genapp.resource.Resource;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.*;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
+import java.io.*;
+import java.util.*;
 
 /**
  * The Metadata class stores Resources entries by name in a map.
@@ -32,6 +25,11 @@ public class Metadata {
     }
 
     public Map<String, String> getEnvironment() {
+        return environment;
+    }
+
+    public Map<String, String> addEnvironment(Map<String, String> environment) {
+        environment.putAll(environment);
         return environment;
     }
 

@@ -1,7 +1,6 @@
 package com.cloudbees.genapp.resource;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class Email extends Resource {
 

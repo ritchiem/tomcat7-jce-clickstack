@@ -1,8 +1,6 @@
 package com.cloudbees.genapp.resource;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Database extends Resource {
 

@@ -1,35 +1,23 @@
 package com.cloudbees.genapp.metadata;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
+import java.io.*;
 import java.util.*;
 
 /**
  * Created with IntelliJ IDEA. User: benjamin Date: 5/6/13 Time: 1:21 PM To change this template use File | Settings |
  * File Templates.
  */
-public class EnvBuilder implements ConfigurationBuilder {
+public class EnvBuilder {
 
     private boolean safe;
     private boolean deprecated;
     private Metadata metadata;
     private static final List<String> deprecatedKeys = Arrays.asList("^MYSQL_.*$");
 
-    public EnvBuilder(boolean safe, boolean deprecated) {
-        this.safe = safe;
-        this.deprecated = deprecated;
-    }
-
-    private EnvBuilder(boolean safe, boolean deprecated, Metadata metadata) {
+    public EnvBuilder(boolean safe, boolean deprecated, Metadata metadata) {
         this.safe = safe;
         this.deprecated = deprecated;
         this.metadata = metadata;
-    }
-
-    @Override
-    public EnvBuilder create(Metadata metadata) {
-        return new EnvBuilder(safe, deprecated, metadata);
     }
 
     private List<String> getProperties() {
@@ -75,11 +63,16 @@ public class EnvBuilder implements ConfigurationBuilder {
         }
     }
 
-    @Override
-    public void writeConfiguration(Metadata metadata, File configurationFile) throws Exception {
-        EnvBuilder envBuilder = this.create(metadata);
-        List<String> envProperties = envBuilder.getProperties();
-        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(configurationFile));
+    public void writeControlFile(String controlPath) throws IOException {
+        Map<String, String> env = System.getenv();
+        String controlAbsolutePath = env.get("control_dir") + controlPath;
+        File controlFile = new File(controlAbsolutePath);
+
+        if (!controlFile.exists())
+            controlFile.createNewFile();
+
+        List<String> envProperties = getProperties();
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(controlFile));
         for (String line : envProperties) {
             bufferedWriter.write(line);
             bufferedWriter.newLine();

@@ -1,8 +1,6 @@
 package com.cloudbees.genapp.resource;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * The Resource class stores a Genapp resource characterized by descriptors and parameters.

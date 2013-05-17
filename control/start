@@ -9,6 +9,8 @@ control_dir="$(dirname $0)"
 . "$control_dir/env_safe"
 
 # If -Pdebug=true then we give some additional output to help stack debugging.
+debug="true"
+
 if [[ "$debug" == "true" ]]; then 
 	echo -e "\n##### BEGIN TOMCAT7 INFO #####"
 	_dir=$(pwd)

@@ -1,28 +1,20 @@
 package com.cloudbees.genapp.tomcat7;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.*;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import com.cloudbees.genapp.metadata.ConfigurationBuilder;
 import com.cloudbees.genapp.resource.SessionStore;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
+import org.w3c.dom.*;
 
 import com.cloudbees.genapp.metadata.Metadata;
-import com.cloudbees.genapp.resource.Resource;
-import com.cloudbees.genapp.resource.Database;
-import com.cloudbees.genapp.resource.Email;
+import com.cloudbees.genapp.resource.*;
 
-public class ContextXmlBuilder implements ConfigurationBuilder {
+public class ContextXmlBuilder {
 
     private Document contextDocument;
     private Metadata metadata;
@@ -33,14 +25,9 @@ public class ContextXmlBuilder implements ConfigurationBuilder {
             "defaultTransactionIsolation", "poolPreparedStatements", "maxOpenPreparedStatements", "defaultCatalog",
             "connectionInitSqls", "connectionProperties", "accessToUnderlyingConnectionAllowed");
 
-    public ContextXmlBuilder() {}
 
-    private ContextXmlBuilder(Metadata metadata) {
+    public ContextXmlBuilder (Metadata metadata) {
         this.metadata = metadata;
-    }
-
-    public ContextXmlBuilder create(Metadata metadata) {
-        return new ContextXmlBuilder(metadata);
     }
 
     private ContextXmlBuilder addResources(Metadata metadata) {
@@ -136,9 +123,12 @@ public class ContextXmlBuilder implements ConfigurationBuilder {
         return contextDocument;
     }
 
-    @Override
-    public void writeConfiguration(Metadata metadata, File configurationFile) throws Exception {
-        Document contextXml = this.create(metadata).fromExistingDocument(configurationFile).buildContextDocument();
+    public void injectToFile(String contextPath) throws Exception {
+        Map<String, String> env = System.getenv();
+        String contextAbsolutePath = env.get("app_dir") + contextPath;
+        File contextFile = new File(contextAbsolutePath);
+
+        Document contextXml = fromExistingDocument(contextFile).buildContextDocument();
 
         // Write the content into XML file
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
@@ -146,6 +136,6 @@ public class ContextXmlBuilder implements ConfigurationBuilder {
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty(OutputKeys.STANDALONE, "no");
 
-        transformer.transform(new DOMSource(contextXml), new StreamResult(configurationFile));
+        transformer.transform(new DOMSource(contextXml), new StreamResult(contextFile));
     }
 }
