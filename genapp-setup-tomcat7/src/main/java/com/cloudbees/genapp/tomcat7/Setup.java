@@ -22,8 +22,6 @@ public class Setup {
 
         EnvBuilder safeEnvBuilder = new EnvBuilder(true, false, metadata);
         safeEnvBuilder.writeControlFile("/env_safe");
-        EnvBuilder unsafeEnvBuilder = new EnvBuilder(true, false, metadata);
-        unsafeEnvBuilder.writeControlFile("/env");
         ContextXmlBuilder contextXmlBuilder = new ContextXmlBuilder(metadata);
         contextXmlBuilder.injectToFile("/server/conf/context.xml");
     }

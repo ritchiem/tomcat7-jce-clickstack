@@ -13,12 +13,9 @@ create_app_skel() {
     mkdir -m 750 "$app_dir/conf"
     mkdir -m 770 "$app_dir/tmp"
 
-    # This will be rewritten by the stack during write_metadata
-    rm -rf "$control_dir/env"
-
     # We need to initialize those files as they are going to be sourced later.
     # Also, install_server_config step requires pre-existing files.
-    for _file in "$config" "$control_dir/env_safe" "$control_dir/env"; do
+    for _file in "$config" "$control_dir/env_safe"; do
         touch "$_file"
         chmod 640 "$_file"
     done
@@ -93,7 +90,6 @@ write_metadata() {
     echo "Injecting metadata into configuration files"
     # This jar writes metadata to: 
     # $control_dir/env_safe
-    # $control_dir/env
     # $catalina_base/conf/context.xml
     $(find_java) -jar "$plugin_dir/lib/genapp-setup-tomcat7.jar"
 }
