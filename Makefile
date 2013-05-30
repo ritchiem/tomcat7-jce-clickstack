@@ -12,9 +12,9 @@ include plugin.mk
 lib:
 	mkdir -p lib
 
-tomcat7_ver = 7.0.39
+tomcat7_ver = 7.0.40
 tomcat7_url = http://mirror.nexcess.net/apache/tomcat/tomcat-7/v$(tomcat7_ver)/bin/apache-tomcat-$(tomcat7_ver).zip
-tomcat7_md5 = 30c6adc5b537be4bd098a4b30b5385a5
+tomcat7_md5 = 676f8798168ebc9cf21da6804ee2fb53
 
 lib/tomcat7.zip: lib lib/genapp-setup-tomcat7.jar
 	curl -fLo lib/tomcat7.zip "$(tomcat7_url)"
