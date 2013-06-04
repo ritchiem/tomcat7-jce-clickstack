@@ -8,11 +8,10 @@ import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import com.cloudbees.genapp.resource.SessionStore;
 import org.w3c.dom.*;
 
 import com.cloudbees.genapp.metadata.Metadata;
-import com.cloudbees.genapp.resource.*;
+import com.cloudbees.genapp.metadata.resource.*;
 
 public class ContextXmlBuilder {
 
