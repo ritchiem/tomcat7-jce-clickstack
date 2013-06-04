@@ -39,7 +39,7 @@ jmxtrans_agent_ver = 1.0.0
 jmxtrans_agent_url = http://repo1.maven.org/maven2/org/jmxtrans/agent/jmxtrans-agent/$(jmxtrans_agent_ver)/jmxtrans-agent-$(jmxtrans_agent_ver).jar
 jmxtrans_agent_md5 = 9dd2bdd2adb7df9dbae093a2c6b08678
 
-lib/jmxtrans-agent.jar:
+lib/jmxtrans-agent.jar: lib
 	mkdir -p lib
 	curl -fLo lib/jmxtrans-agent.jar "$(jmxtrans_agent_url)"
 	$(call check-md5,lib/jmxtrans-agent.jar,$(jmxtrans_agent_md5))
