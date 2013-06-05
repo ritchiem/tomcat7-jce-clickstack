@@ -4,7 +4,9 @@ set -e
 set -u
 
 . "$plugin_dir/functions"
+. "$plugin_dir/java-jce/functions"
 
+install_java_jce_unlimited_profile
 create_app_skel
 install_tomcat7
 install_java_agent

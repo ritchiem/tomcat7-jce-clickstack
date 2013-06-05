@@ -3,9 +3,9 @@ publish_bucket = cloudbees-clickstack
 publish_repo = testing
 publish_url = s3://$(publish_bucket)/$(publish_repo)/
 
-deps = lib lib/tomcat7.zip lib/jmxtrans-agent.jar java
+deps = lib lib/tomcat7.zip lib/jmxtrans-agent.jar java java-jce
 
-pkg_files = control functions server setup lib java conf
+pkg_files = control functions server setup lib java conf java-jce
 
 include plugin.mk
 
@@ -50,3 +50,11 @@ java:
 	git clone $(java_plugin_gitrepo) java
 	rm -rf java/.git
 	cd java; make clean; make deps
+
+java_jce_plugin_gitrepo = git://github.com/ritchiem/java-jce-clickstack.git
+java_jce_unlimited_src =
+
+java-jce:
+	git clone $(java_jce_plugin_gitrepo) java-jce
+	rm -rf java-jce/.git*
+	cd java-jce; make clean; make deps java_jce_unlimited_src=${java_jce_unlimited_src}
